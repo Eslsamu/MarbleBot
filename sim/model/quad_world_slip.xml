@@ -3,18 +3,18 @@
 
     <default>
         <joint limited="true" damping="1" armature="0"/>
-        <geom condim="1" material="matgeom"/>
+        <geom condim="3" material="matgeom"/>
 	<motor ctrlrange="-.4 .4" ctrllimited="true" gear="40"/>
-	<tendon stiffness="4000" damping="300"/>
+	<tendon stiffness="4000" damping="300"/> <!-- Default: Stiff = 4000 and damp = 300 -->
     </default>
 
     <option timestep="0.005" iterations="50" tolerance="1e-10" solver="Newton" jacobian="dense" cone="pyramidal"/>
 
-    <size nconmax="50" njmax="200" nstack="10000"/>
+    <size nconmax="320" njmax="1100" nstack="10000"/> <!-- default njmax=200 and nconmax = 50 -->
 
     <visual>
         <map force="0.1" zfar="30"/>
-        <rgba haze="0.15 0.25 0.35 1"/>
+	<!--  <rgba haze="0.15 0.25 0.35 1"/> -->
         <quality shadowsize="2048"/>
         <global offwidth="800" offheight="800"/>
     </visual>
@@ -32,12 +32,12 @@
         <material name="matgeom" texture="texgeom" texuniform="true" rgba="0.8 0.6 .4 1"/>
 		
 		<!-- Using size="20 20 0.33 0.5" for example produces a pretty good rough terrain. -->
-	<!-- <hfield name="field1" file="heightfield1.png" size="10 10 0.11 0.5"/> -->  <!-- The heightfield asset to be attached to a geom. -->
+	 <hfield name="field1" file="heightfieldRough1.png" size="8 8 0.05 0.15"/>  <!-- The heightfield asset to be attached to a geom. -->
     </asset>
 
     <worldbody>
 	   <!-- <geom name="floor" pos="0 0 0" size="0 0 .25" type="plane" material="matplane" condim="3" euler="1 6 17"/> -->  <!-- There's many different ways of changing the angle of the plane (euler, axisangle, quat, etc.).  -->
-        <geom name="floor" pos="0 0 0" size="0 0 .25" type="plane" material="matplane" condim="3" axisangle="1 1 1 0"/> 
+        <geom name="floor" pos="0 0 0" size="40 40 .2" type="plane" material="matplane" condim="3" axisangle="1 1 1 0"/> 
 		
 	<!-- Example of sloped surface creation (CRUDE/ROUGH, better ways of creating sloped ground almost certainly exist). -->
 		<!--<geom name="floor2" pos="0 0.5 0" size="0 0 .25" type="plane" material="matplane" condim="3" axisangle="1 1 1 5"/>
@@ -57,55 +57,63 @@
 
         <light directional="false" diffuse=".2 .2 .2" specular="0 0 0" pos="0 0 5" dir="0 0 -1" castshadow="false"/>
         <light mode="targetbodycom" target="torso" directional="false" diffuse=".8 .8 .8" specular="0.3 0.3 0.3" pos="0 0 4.0" dir="0 0 -1"/>       
-	
-	<!--  <body name="highMap" pos="1 1 0">
-		<geom name="highMapGeom1" type="hfield" pos="0 0 0" hfield="field1"/> -->  <!-- The hfield. The position specified here is ignored, instead the position defined in the hfield asset itself is used. -->
-    <!-- </body> -->		
+
+
+	<!-- mujoco150 doesn't support hfield's in bodies, rather, they should be directly in the worldbody. Mujoco200 hfield commented out.  -->
+
+	<geom name="highMapGeom1" pos="1 1 0" type="hfield" hfield="field1" condim="3"/>
+
+	<!--  <body name="highMap" pos="1 1 0"> 
+	      <geom name="highMapGeom1" type="hfield" pos="0 0 0" hfield="field1"/> -->  <!-- The hfield. The size specified here is ignored, instead the size defined in the hfield asset itself is used. --> 
+      <!--  </body>  -->
+
         <!-- Default hip range: range="-40 40" -->	
 	<body name="torso" pos="0 0 1">
         <freejoint name="root"/>
-        <geom name="torso_geom" pos="0 0 0" size="0.4 0.2 0.1" type="box"/>
+	<geom name="torso_geom" pos="0 0 0" size="0.4 0.2 0.1" type="box"/>
+	<site name="gyroSensorSite" pos="0 0 0" size="0.005"/> <!-- Site for the gyroscope sensor. -->
         <body name="upper_front_left_leg" pos="0.35 0.26 -0.06">
           <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name="upper_aux_1_geom" size="0.06" type="capsule" rgba    =".8 .5 .3 1"/>
-		  <site name="s1_1" pos="0 0 1.5" size="0.005"/>
+	  <site name="s1_1" pos="0 0 -0.2" size="0.005"/> <!-- orginal: pos="0 0 1.5" -->
 	      <joint axis = "0 1 0" name = "hip_1" pos= "0.0 0.0 0.0" range="-90 90" type="hinge"/>
 	      <joint axis = "1 0 0" name = "hip_side_1" pos="0.0 0.0 0.0" range="-10 10" type ="hinge"/>
 		  <body name="lower_front_left_leg" pos="0 0 -0.2">
 		   <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name ="lower_aux_1_geom" size="0.06" type="capsule" rgba      =".2 .8 .7 1"/>
-		   <site name="s1_2" pos="0 0 1.5" size="0.005"/>
+		   <site name="s1_2" pos="0 0 0" size="0.005"/> <!-- Original: pos ="0 0 1.5" -->
 		   <joint type="slide" axis="0 0 1" limited="false"/>
+		   <site name="touchSite1" pos="0 0 -0.2" type="sphere" size="0.064 0.064 0.064" rgba="0.8 0 0.2 1"/>
 		  </body>
         </body>
         <body name="upper_front_right_leg" pos="0.35 -0.26 -0.06">
             <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name="upper_aux_2_geom" size="0.06" type="capsule"/>    
-            <site name="s2_1" pos="0 0 1.5" size="0.005"/>			
+            <site name="s2_1" pos="0 0 -0.2" size="0.005"/>			
 		    <joint axis="0 1 0" name="hip_2" pos="0.0 0.0 0.0" range="-90 90" type="hinge"/>
 		    <joint axis = "1 0 0" name = "hip_side_2" pos="0.0 0.0 0.0" range="-10 10" type ="hinge"/>
             <body name="lower_front_right_leg" pos="0 0 -0.2">
 		      <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name ="lower_aux_2_geom" size="0.06" type="capsule" rgba      =".2 .8 .7 1"/>
-		      <site name="s2_2" pos="0 0 1.5" size="0.005"/>
+		      <site name="s2_2" pos="0 0 0" size="0.005"/>
 		      <joint type="slide" axis="0 0 1" limited="false"/>
 		  </body>
         </body>
         <body name="upper_left_back_leg" pos="-0.35 0.26 -0.06">
           <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name="upper_aux_3_geom" size="0.06" type="capsule"/>
-		  <site name="s3_1" pos="0 0 1.5" size="0.005"/>
+		  <site name="s3_1" pos="0 0 -0.2" size="0.005"/>
 	      <joint axis="0 1 0" name="hip_3" pos="0.0 0.0 0.0" range="-90 90" type="hinge"/>
 	      <joint axis = "1 0 0" name = "hip_side_3" pos="0.0 0.0 0.0" range="-10 10" type ="hinge"/>
 		  <body name="lower_left_back_leg" pos="0 0 -0.2">
 		      <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name ="lower_aux_3_geom" size="0.06" type="capsule" rgba      =".2 .8 .7 1"/>
-		      <site name="s3_2" pos="0 0 1.5" size="0.005"/>
+		      <site name="s3_2" pos="0 0 0" size="0.005"/>
 		      <joint type="slide" axis="0 0 1" limited="false"/>
 		  </body>
         </body>
         <body name="upper_right_back_leg" pos="-0.35 -0.26 -0.06">
           <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name="upper_aux_4_geom" size="0.06" type="capsule" rgba    =".8 .5 .3 1"/>
-		  <site name="s4_1" pos="0 0 1.5" size="0.005"/>
+		  <site name="s4_1" pos="0 0 -0.2" size="0.005"/>
 	      <joint axis="0 1 0" name="hip_4" pos="0.0 0.0 0.0" range="-90 90" type="hinge"/>
 	      <joint axis = "1 0 0" name = "hip_side_4" pos="0.0 0.0 0.0" range="-10 10" type ="hinge"/>
 		  <body name="lower_right_back_leg" pos="0 0 -0.2">
 		      <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name ="lower_aux_4_geom" size="0.06" type="capsule" rgba      =".2 .8 .7 1"/>
-		      <site name="s4_2" pos="0 0 1.5" size="0.005"/>
+		      <site name="s4_2" pos="0 0 0" size="0.005"/>
 		      <joint type="slide" axis="0 0 1" limited="false"/>
 		  </body>
          </body>
@@ -147,5 +155,10 @@ i     <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_side_1"/>
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" tendon="tend3" gear="150"/>
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" tendon="tend4" gear="150"/> -->
     </actuator>
+
+    <sensor>
+	    <gyro site="gyroSensorSite"/>
+	    <touch site="touchSite1"/>    
+    </sensor>	    
 
 </mujoco>
