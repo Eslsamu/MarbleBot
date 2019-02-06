@@ -3,15 +3,21 @@
 import environment
 import numpy as np
 import tensorflow as tf
+import scipy.signal
 
 env = environment.robo_env('model/quad_world.xml')
 
 #noise constant 
 EPS = 1e-8
 
-    #log likelihood of x given normal distribution(mean,log_std)
+#cumulative sum
+def disc_cumsum(x, discount):
+    return scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1]
+
+#log likelihood of x given normal distribution(mean,log_std)
 def log_likelihood(x, mean, log_std):
-    prob = -0.5 * (( (x-mean)/(tf.exp(log_std)+EPS))**2 + 2 * log_std + np.log(2*np.pi))
+   prob = -0.5 * (( (x-mean)/(tf.exp(log_std)+EPS))**2 + 2 * log_std + np.log(2*np.pi))
+   return tf.reduce_sum(prob, axis=1)
 
 def nn(inp, hidden_sizes=(8,), activation=tf.tanh):
     for h in hidden_sizes[:-1]:
@@ -46,36 +52,105 @@ def actor_critic(state, action, hidden_sizes=(64,64)):
 
     return pi, logp, logp_pi, val
 
+class VPGBuffer:
+    """
+    A buffer for storing trajectories experienced by a VPG agent interacting
+    with the environment, and using Generalized Advantage Estimation (GAE-Lambda)
+    for calculating the advantages of state-action pairs.
+    """
 
-def vpg(epoch_steps = 5000):
+    def __init__(self, obs_dim, act_dim, size, gamma=0.99, lam=0.95):
+        self.obs_buf = np.zeros((size, obs_dim), dtype=np.float32)
+        self.act_buf = np.zeros((size, act_dim), dtype=np.float32)
+        self.adv_buf = np.zeros(size, dtype=np.float32)
+        self.rew_buf = np.zeros(size, dtype=np.float32)
+        self.ret_buf = np.zeros(size, dtype=np.float32)
+        self.val_buf = np.zeros(size, dtype=np.float32)
+        self.logp_buf = np.zeros(size, dtype=np.float32)
+        self.gamma, self.lam = gamma, lam
+        self.ptr, self.path_start_idx, self.max_size = 0, 0, size
+
+    def store(self, obs, act, rew, val, logp):
+        """
+        Append one timestep of agent-environment interaction to the buffer.
+        """
+        assert self.ptr < self.max_size     # buffer has to have room so you can store
+        self.obs_buf[self.ptr] = obs
+        self.act_buf[self.ptr] = act
+        self.rew_buf[self.ptr] = rew
+        self.val_buf[self.ptr] = val
+        self.logp_buf[self.ptr] = logp
+        self.ptr += 1
+
+    def finish_path(self, last_val=0):
+        """
+        Call this at the end of a trajectory, or when one gets cut off
+        by an epoch ending. This looks back in the buffer to where the
+        trajectory started, and uses rewards and value estimates from
+        the whole trajectory to compute advantage estimates with GAE-Lambda,
+        as well as compute the rewards-to-go for each state, to use as
+        the targets for the value function.
+
+        The "last_val" argument should be 0 if the trajectory ended
+        because the agent reached a terminal state (died), and otherwise
+        should be V(s_T), the value function estimated for the last state.
+        This allows us to bootstrap the reward-to-go calculation to account
+        for timesteps beyond the arbitrary episode horizon (or epoch cutoff).
+        """
+
+        path_slice = slice(self.path_start_idx, self.ptr)
+        rews = np.append(self.rew_buf[path_slice], last_val)
+        vals = np.append(self.val_buf[path_slice], last_val)
+
+        # the next two lines implement GAE-Lambda advantage calculation
+        deltas = rews[:-1] + self.gamma * vals[1:] - vals[:-1]
+        self.adv_buf[path_slice] = disc_cumsum(deltas, self.gamma * self.lam)
+
+        # the next line computes rewards-to-go, to be targets for the value function
+        self.ret_buf[path_slice] = disc_cumsum(rews, self.gamma)[:-1]
+
+        self.path_start_idx = self.ptr
+
+    def get(self):
+        """
+        Call this at the end of an epoch to get all of the data from
+        the buffer, with advantages appropriately normalized (shifted to have
+        mean zero and std one). Also, resets some pointers in the buffer.
+        """
+        assert self.ptr == self.max_size    # buffer has to be full before you can get
+        self.ptr, self.path_start_idx = 0, 0
+        # the next two lines implement the advantage normalization trick
+        adv_mean = np.mean(self.adv_buf)
+        adv_var = np.var(self.adv_buf)
+        self.adv_buf = (self.adv_buf - adv_mean) / adv_var**0.5
+
+        return [self.obs_buf, self.act_buf, self.adv_buf, 
+                self.ret_buf, self.logp_buf]
+
+
+
+def vpg(epochs=50,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,val_iters=50):
     act_dim = env.act_shape[0]
-    state_dim = env.state_shape[0]
+    obs_dim = env.state_shape[0]
 
     #tensorflow graph inputs
-    state_ph = tf.placeholder(dtype = tf.float32, shape=(None,state_dim))
+    obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim))
     act_ph = tf.placeholder(dtype = tf.float32, shape=(None,act_dim))
     adv_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     ret_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     logp_old_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
-    graph_inputs = [state_ph, act_ph, adv_ph, ret_ph, logp_old_ph]
+    graph_inputs = [obs_ph, act_ph, adv_ph, ret_ph, logp_old_ph]
 
 
     #tensorflow graph outputs
-    pol, logp, logp_pi, val = actor_critic(state_ph, act_ph)
+    pi, logp, logp_pi, val = actor_critic(obs_ph, act_ph)
 
-    #experience store
-    states_store = np.zeros((epoch_steps,state_dim), dtype = np.float32)
-    act_store = np.zeros((epoch_steps,state_dim), dtype = np.float32)
-    adv_store = np.zeros(epoch_steps, dtype=np.float32)
-    rew_store = np.zeros(epoch_steps, dtype=np.float32)
-    ret_store = np.zeros(epoch_steps, dtype=np.float32)
-    val_store = np.zeros(epoch_steps, dtype=np.float32)
-    logp_store = np.zeros(epoch_steps, dtype=np.float32)
-    exp_store = [states_store,act_store,adv_store,rew_store,ret_store,val_store,logp_store]
+    #experience buffer
+    buf = VPGBuffer(obs_dim, act_dim, epoch_steps, gamma, lam)
 
     #loss functions
     pi_loss = -tf.reduce_mean(logp*adv_ph)
-    v_loss = tf.reduce_mean((ret_ph - v)**2)
+    v_loss = tf.reduce_mean((ret_ph - val)**2)
 
     #optimizer
     opt_pi = tf.train.AdamOptimizer(learning_rate = pi_lr).minimize(pi_loss)
@@ -86,51 +161,34 @@ def vpg(epoch_steps = 5000):
 
     #gradient update
     def update():
-        #normalize/standardize advantage
-        adv_mean, adv_var = tf.nn.moments(adv_store, 0)
-        adv_store = (adv_store-adv_mean)/adv_std
-
         #create input dictionary from trajector and graph inputs
-        inputs =  {g:t for g,t in zip(graph_inputs,exp_store)}
+        inputs =  {g:t for g,t in zip(graph_inputs,buf.get())}
 
         #policy gradient step
         sess.run(opt_pi, feed_dict=inputs)
 
         #value function training
-        for i in range(val_iterations):
+        for i in range(val_iters):
             sess.run(opt_val, feed_dict=inputs)
 
-    #cumulative sum
-    def disc_cumsum(x, discount):
-        """
-    magic from rllab for computing discounted cumulative sums of vectors.
-    input: 
-        vector x, 
-        [x0, 
-         x1, 
-         x2]
-    output:
-        [x0 + discount * x1 + discount^2 * x2,  
-         x1 + discount * x2,
-         x2]
-        """
-        return scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1]
+    obs, done, rew, ep_ret, ep_len = env.reset(),False , 0 , 0, 0
 
-    state, done, rew, ep_ret, ep_len = env.reset(), 0, 0 , 0
+    render = False
+
     #experience and training loop
     for epoch in range(epochs):
         traj_start = 0
         for t in range(epoch_steps):
-            a, v_t, logp_t = sess.run([pi, val, logp_pi], feed_dict={state_ph: state.reshape(1,-1)})
+            obs = obs.reshape(1,-1)
+            a, v_t, logp_t = sess.run([pi, val, logp_pi], feed_dict={obs_ph: obs})
 
             #save traj info
-            states_store[t] = state
-            act_store[t] = a
-            rew_store[t] = rew
-            val_store[t] = v_t
-            logp_store[t] = logp_t
+            buf.store(obs,a,rew,v_t,logp_t)
 
-            state, rew, done, = env.step(a[0])
+            if render :
+                env.render()
+
+            rew ,obs , done, = env.step(a[0])
             ep_ret += rew
             ep_len += 1
 
@@ -138,25 +196,16 @@ def vpg(epoch_steps = 5000):
             if terminated or (t==epoch_steps-1):
                 if not terminated:
                     print("traj cut off")
-                last_val = rew if done else sess.run(val, feed_dict={state_ph: state.reshape(1,-1)})
+                else:
+                    print("done after steps: ", ep_len)
 
-                #get rewards and values of trajectory
-                traj_slice = slice(traj_start, t)
-                rews = np.append(rew_store[traj_slice], last_val)
-                vals = np.append(val_store[traj_slice], last_val)
+                last_val = rew if done else sess.run(val, feed_dict={obs_ph: obs.reshape(1,-1)})
+                buf.finish_path(last_val)
 
-                #GAE-lambda advantage
-                deltas = rews[:-1] + gamma * vals[1:] - vals[:-1]
-                adv_store[traj_slice] = disc_cumsum(deltas, gamma * lam)
-                #rewards to go (minimize difference of these and value function)
-                ret_store[traj_slice] = disc_cumsum(rews, gamma)[:-1]
-
-                #traj start
-                traj_start = t
-
-                state, done, rew, ep_ret, ep_len = env.reset(), 0, 0 , 0
+                obs, done, rew, ep_ret, ep_len = env.reset(),False, 0, 0 , 0
 
         #gradient update
         update()
+
 
 vpg()

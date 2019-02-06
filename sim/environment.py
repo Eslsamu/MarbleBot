@@ -41,8 +41,8 @@ class robo_env():
 
     def _get_state(self):
         state = np.concatenate([
-                sim.data.qpos.flat,
-                sim.data.qvel.flat])
+                self.sim.data.qpos.flat,
+                self.sim.data.qvel.flat])
         return state 
 
     def check_collision(self):
@@ -57,14 +57,17 @@ class robo_env():
 
     def reset(self):
         self.sim.reset()
-        done = check_collision()
-        return self._get_state(), done
+        return self._get_state()
 
     @property
     def dt(self):
         return self.model.opt.timestep * 5 #this value is from the spinup library /mujoco_env.py
 
-    def render(self):
-        if self.viewer is None:
-            self.viewer = mjc.MjViewer(self.sim)
-        self.viewer.render()
+    def render(self, on=True):
+        if on:
+            if self.viewer is None:
+                self.viewer = mjc.MjViewer(self.sim)
+            self.viewer.render()
+        if not on:
+            if self.viewer:
+                self.viewer = None
