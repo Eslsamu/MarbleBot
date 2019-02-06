@@ -32,7 +32,7 @@
         <material name="matgeom" texture="texgeom" texuniform="true" rgba="0.8 0.6 .4 1"/>
 		
 		<!-- Using size="20 20 0.33 0.5" for example produces a pretty good rough terrain. -->
-	 <hfield name="field1" file="heightfieldRough1.png" size="8 8 0.05 0.15"/>  <!-- The heightfield asset to be attached to a geom. -->
+	 <!--hfield name="field1" file="heightfieldRough1.png" size="8 8 0.05 0.15"/>  <!-- The heightfield asset to be attached to a geom. -->
     </asset>
 
     <worldbody>
@@ -61,7 +61,7 @@
 
 	<!-- mujoco150 doesn't support hfield's in bodies, rather, they should be directly in the worldbody. Mujoco200 hfield commented out.  -->
 
-	<geom name="highMapGeom1" pos="1 1 0" type="hfield" hfield="field1" condim="3"/>
+	<!--geom name="highMapGeom1" pos="1 1 0" type="hfield" hfield="field1" condim="3"/>
 
 	<!--  <body name="highMap" pos="1 1 0"> 
 	      <geom name="highMapGeom1" type="hfield" pos="0 0 0" hfield="field1"/> -->  <!-- The hfield. The size specified here is ignored, instead the size defined in the hfield asset itself is used. --> 
