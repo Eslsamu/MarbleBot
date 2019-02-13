@@ -4,8 +4,10 @@ import environment
 import numpy as np
 import tensorflow as tf
 import scipy.signal
+import time
 
-env = environment.robo_env('model/quad_world.xml')
+env = environment.RoboEnv('model/quad_world.xml')
+
 
 #noise constant 
 EPS = 1e-8
@@ -28,13 +30,17 @@ def nn(inp, hidden_sizes=(8,), activation=tf.tanh):
 def policy(state, action, hidden_sizes):
     act_dim = action.shape.as_list()[-1]
     mean = nn(state, list(hidden_sizes)+[act_dim])
+
     #take log standard deviation because it can take any values in (-inf, inf) -> easier to train without constraints 
     log_std = tf.get_variable(name='log_std', initializer=-0.5*np.ones(act_dim, dtype=np.float32))
     std = tf.exp(log_std)
+
     #samples actions from policy given a state
-    pi = mean + tf.random_normal(tf.shape(mean))*std
+    pi = mean + tf.random_normal(tf.shape(mean))
+
     #gives log probability of taking 'actions' according to the policy in states
     logp = log_likelihood(action, mean, log_std)
+
     #gives log probability according to the policy of the actions sampled by pi
     logp_pi = log_likelihood(pi, mean, log_std)
     return pi, logp, logp_pi
@@ -47,8 +53,7 @@ def actor_critic(state, action, hidden_sizes=(64,64)):
 
     #state value estimation network
     with tf.variable_scope('v'):
-            val = nn(state, list(hidden_sizes)+[1])
-    #maybe need tf.squeeze
+            val = tf.squeeze(nn(state, list(hidden_sizes)+[1]), axis = 1)
 
     return pi, logp, logp_pi, val
 
@@ -124,12 +129,13 @@ class VPGBuffer:
         adv_var = np.var(self.adv_buf)
         self.adv_buf = (self.adv_buf - adv_mean) / adv_var**0.5
 
-        return [self.obs_buf, self.act_buf, self.adv_buf, 
+
+        return [self.obs_buf, self.act_buf, self.adv_buf,
                 self.ret_buf, self.logp_buf]
 
 
 
-def vpg(epochs=50,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,val_iters=50):
+def vpg(epochs=300,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,val_iters=80):
     act_dim = env.act_shape[0]
     obs_dim = env.state_shape[0]
 
@@ -164,20 +170,44 @@ def vpg(epochs=50,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3
         #create input dictionary from trajector and graph inputs
         inputs =  {g:t for g,t in zip(graph_inputs,buf.get())}
 
+        pi_l_old, val_l_old = sess.run([pi_loss, v_loss], feed_dict=inputs)
+
         #policy gradient step
         sess.run(opt_pi, feed_dict=inputs)
 
+        #t = time.time()
+        v = sess.run(opt_val, feed_dict=inputs)
+        #print("time: ", time.time() - t)
+
         #value function training
+        #t = time.time()
         for i in range(val_iters):
             sess.run(opt_val, feed_dict=inputs)
+       # print("value time: ", time.time()-t)
+
+        pi_l_new, val_l_new = sess.run([pi_loss, v_loss], feed_dict=inputs)
+        """
+        print("policy loss:", pi_l_new)
+        print("value func loss:", val_l_new)
+        print("delta policy loss: ",pi_l_new-pi_l_old)
+        print("delta value func loss: ",val_l_new-val_l_old)
+        """
+
 
     obs, done, rew, ep_ret, ep_len = env.reset(),False , 0 , 0, 0
 
-    render = False
+
+    #visualize
+    render = True
 
     #experience and training loop
+    ret_log = []
     for epoch in range(epochs):
         traj_start = 0
+        epoch_ret = []
+
+        first_episode = True
+
         for t in range(epoch_steps):
             obs = obs.reshape(1,-1)
             a, v_t, logp_t = sess.run([pi, val, logp_pi], feed_dict={obs_ph: obs})
@@ -185,7 +215,7 @@ def vpg(epochs=50,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3
             #save traj info
             buf.store(obs,a,rew,v_t,logp_t)
 
-            if render :
+            if render and first_episode:
                 env.render()
 
             rew ,obs , done, = env.step(a[0])
@@ -197,15 +227,64 @@ def vpg(epochs=50,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3
                 if not terminated:
                     print("traj cut off")
                 else:
-                    print("done after steps: ", ep_len)
+                    epoch_ret.append(ep_ret)
+
+                    if first_episode:
+                        print("done after steps: ", ep_len)
+                        print("episode return: ", ep_ret)
+                        # only render first episode
+                        first_episode = False
+
+
 
                 last_val = rew if done else sess.run(val, feed_dict={obs_ph: obs.reshape(1,-1)})
                 buf.finish_path(last_val)
 
                 obs, done, rew, ep_ret, ep_len = env.reset(),False, 0, 0 , 0
+        #TODO print trajectory number, are all trajectory returns saved?
+        print("--------------")
+        print("epoch: ", epoch)
+        print("average return: ", np.mean(epoch_ret) )
+        print("max return: ", max(epoch_ret) )
+        print("min return: ", min(epoch_ret) )
+
+        ret_log += np.mean(epoch_ret)
 
         #gradient update
+        t = time.time()
         update()
+        print("update time: ",time.time()-t)
+
+    print(ret_log)
+
+    # test speed sim result: is similar to spinningup implementation
+
+    s = []
+    for i in range(100):
+        t = time.time()
+        obs = env.reset()
+        for _ in range(10):
+            obs = obs.reshape(1, -1)
+            a = sess.run(pi, feed_dict={obs_ph: obs})
+            rew, obs, done, = env.step(a[0])
+        s.append(t - time.time())
+    print("speed: ", np.mean(s))
+
+    #demonstrate learned policy
+    obs = env.reset()
+    ep_ret = 0
+    while True:
+        obs = obs.reshape(1, -1)
+        a = sess.run(pi, feed_dict={obs_ph: obs})
+        env.render()
+        rew, obs, done, = env.step(a[0])
+        ep_ret += rew
+        if done:
+            print("ret: ", ep_ret)
+            ep_ret = 0
+            obs=env.reset()
 
 
 vpg()
+
+

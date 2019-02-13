@@ -1,8 +1,11 @@
 import mujoco_py as mjc
 import numpy as np
 
-class robo_env():
- 
+class RoboEnv():
+
+    # energy parameter
+    c = 0.001
+
     def __init__(self, xml_path):
         self.model = mjc.load_model_from_path(xml_path)
         self.sim = mjc.MjSim(self.model)
@@ -28,14 +31,16 @@ class robo_env():
         move_rew = (pos_after-pos_before)/self.dt
 
         #energy cost
-        en_cost = np.sum(action)
+        en_cost = np.sum(np.abs(action))
 
-        reward = move_rew - en_cost
+        reward = move_rew #- self.c*en_cost
 
         #check if episode is over
         done = self.check_collision()
 
         state = self._get_state()
+
+        #TODO find reward bug, implement parameters for reward
 
         return reward, state, done
 
@@ -46,7 +51,7 @@ class robo_env():
         return state 
 
     def check_collision(self):
-        sim=self.sim
+        sim = self.sim
         torso = sim.model.geom_name2id('torso_geom')
         floor = sim.model.geom_name2id('floor')
         for i in range(sim.data.ncon):
@@ -62,6 +67,52 @@ class robo_env():
     @property
     def dt(self):
         return self.model.opt.timestep * 5 #this value is from the spinup library /mujoco_env.py
+
+    def render(self, on=True):
+        if on:
+            if self.viewer is None:
+                self.viewer = mjc.MjViewer(self.sim)
+            self.viewer.render()
+        if not on:
+            if self.viewer:
+                self.viewer = None
+
+
+class PendelumEnv():
+    def __init__(self, xml_path):
+        self.model = mjc.load_model_from_path(xml_path)
+        self.sim = mjc.MjSim(self.model)
+        self.act_shape = self.sim.data.ctrl.shape
+        self.state_shape = np.concatenate([
+            self.sim.data.qpos,
+            self.sim.data.qvel]).ravel().shape
+        self.viewer = None
+        self.init_qpos = self.sim.data.qpos.ravel().copy()
+        self.init_qvel = self.sim.data.qvel.ravel().copy()
+        self.frame_skip = 2
+
+    def step(self, a):
+        reward = 1.0
+        self.sim.data.ctrl[:] = a
+        for _ in range(self.frame_skip):
+            self.sim.step()
+        obs = self._get_obs()
+        done = not (np.isfinite(obs).all() and (np.abs(obs[1]) <= .2))
+        return reward, obs, done
+
+    def _get_obs(self):
+        return np.concatenate([self.sim.data.qpos, self.sim.data.qvel]).ravel()
+
+    def reset(self):
+        qpos = self.init_qpos + np.random.uniform(size = self.sim.model.nq, low = 0.01, high = 0.01)
+        qvel = self.init_qvel + np.random.uniform(size = self.sim.model.nv, low = 0.01, high = 0.01)
+
+        old_state = self.sim.get_state()
+        new_state = mjc.MjSimState(old_state.time, qpos, qvel, old_state.act, old_state.udd_state)
+
+        self.sim.set_state(new_state)
+        self.sim.forward()
+        return self._get_obs()
 
     def render(self, on=True):
         if on:
