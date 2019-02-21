@@ -6,7 +6,7 @@ import tensorflow as tf
 import scipy.signal
 import time
 
-env = environment.RoboEnv('model/quad_world.xml')
+env = environment.RoboEnv('model/quad_world_slip.xml')
 
 
 #noise constant 
@@ -36,7 +36,7 @@ def policy(state, action, hidden_sizes):
     std = tf.exp(log_std)
 
     #samples actions from policy given a state
-    pi = mean + tf.random_normal(tf.shape(mean))
+    pi = mean + tf.random_normal(tf.shape(mean))*std
 
     #gives log probability of taking 'actions' according to the policy in states
     logp = log_likelihood(action, mean, log_std)
@@ -135,7 +135,7 @@ class VPGBuffer:
 
 
 
-def vpg(epochs=300,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,val_iters=80):
+def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2):
     act_dim = env.act_shape[0]
     obs_dim = env.state_shape[0]
 
@@ -155,8 +155,16 @@ def vpg(epochs=300,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
     buf = VPGBuffer(obs_dim, act_dim, epoch_steps, gamma, lam)
 
     #loss functions
-    pi_loss = -tf.reduce_mean(logp*adv_ph)
+    ratio = tf.exp(logp - logp_old_ph)      #pi(a|s) / pi_old(a|s)
+    min_adv = tf.where(adv_ph > 0, (1 + clip_ratio) * adv_ph, (1 - clip_ratio) * adv_ph)
+    pi_loss = -tf.reduce_mean(tf.minimum(ratio * adv_ph, min_adv))
     v_loss = tf.reduce_mean((ret_ph - val)**2)
+
+    # Info (useful to watch during learning)
+    approx_kl = tf.reduce_mean(logp_old_ph - logp)  # a sample estimate for KL-divergence, easy to compute
+    approx_ent = tf.reduce_mean(-logp)  # a sample estimate for entropy, also easy to compute
+    clipped = tf.logical_or(ratio > (1 + clip_ratio), ratio < (1 - clip_ratio))
+    clipfrac = tf.reduce_mean(tf.cast(clipped, tf.float32))
 
     #optimizer
     opt_pi = tf.train.AdamOptimizer(learning_rate = pi_lr).minimize(pi_loss)
@@ -170,14 +178,18 @@ def vpg(epochs=300,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
         #create input dictionary from trajector and graph inputs
         inputs =  {g:t for g,t in zip(graph_inputs,buf.get())}
 
-        pi_l_old, val_l_old = sess.run([pi_loss, v_loss], feed_dict=inputs)
+        pi_l_old, val_l_old, ent = sess.run([pi_loss, v_loss, approx_ent], feed_dict=inputs)
+
+        #Training
+        for i in range(pi_iters):
+            _, kl = sess.run([opt_pi, approx_kl], feed_dict=inputs)
+            kl = np.mean(kl)
+            if kl > 1.5 * target_kl:
+                print('Early stopping at step %d due to reaching max kl.'%i)
+                break
 
         #policy gradient step
         sess.run(opt_pi, feed_dict=inputs)
-
-        #t = time.time()
-        v = sess.run(opt_val, feed_dict=inputs)
-        #print("time: ", time.time() - t)
 
         #value function training
         #t = time.time()
@@ -198,10 +210,9 @@ def vpg(epochs=300,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
 
 
     #visualize
-    render = True
+    render = False
 
     #experience and training loop
-    ret_log = []
     for epoch in range(epochs):
         traj_start = 0
         epoch_ret = []
@@ -241,24 +252,19 @@ def vpg(epochs=300,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
                 buf.finish_path(last_val)
 
                 obs, done, rew, ep_ret, ep_len = env.reset(),False, 0, 0 , 0
-        #TODO print trajectory number, are all trajectory returns saved?
         print("--------------")
         print("epoch: ", epoch)
         print("average return: ", np.mean(epoch_ret) )
         print("max return: ", max(epoch_ret) )
         print("min return: ", min(epoch_ret) )
 
-        ret_log += np.mean(epoch_ret)
 
         #gradient update
-        t = time.time()
         update()
-        print("update time: ",time.time()-t)
 
-    print(ret_log)
 
     # test speed sim result: is similar to spinningup implementation
-
+    """
     s = []
     for i in range(100):
         t = time.time()
@@ -269,20 +275,23 @@ def vpg(epochs=300,epoch_steps = 2000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
             rew, obs, done, = env.step(a[0])
         s.append(t - time.time())
     print("speed: ", np.mean(s))
+    """
 
     #demonstrate learned policy
     obs = env.reset()
     ep_ret = 0
     while True:
-        obs = obs.reshape(1, -1)
-        a = sess.run(pi, feed_dict={obs_ph: obs})
-        env.render()
-        rew, obs, done, = env.step(a[0])
-        ep_ret += rew
-        if done:
-            print("ret: ", ep_ret)
-            ep_ret = 0
-            obs=env.reset()
+        for i in range(max_ep_len):
+            obs = obs.reshape(1, -1)
+            a = sess.run(pi, feed_dict={obs_ph: obs})
+            env.render()
+            rew, obs, done, = env.step(a[0])
+            ep_ret += rew
+            if done:
+                print("ret: ", ep_ret)
+                ep_ret = 0
+                obs=env.reset()
+                break
 
 
 vpg()

@@ -68,11 +68,11 @@
       <!--  </body>  -->
 
         <!-- Default hip range: range="-40 40" -->	
-	<body name="torso" pos="0 0 1">
+	<body name="torso" pos="0 0 0.4">
         <freejoint name="root"/>
 	<geom name="torso_geom" pos="0 0 0" size="0.4 0.2 0.1" type="box"/>
 	<site name="gyroSensorSite" pos="0 0 0" size="0.005"/> <!-- Site for the gyroscope sensor. -->
-        <body name="upper_front_left_leg" pos="0.35 0.26 -0.06">
+        <body name="upper_front_left_leg" pos="0.35 0.26 0.00">
           <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name="upper_aux_1_geom" size="0.06" type="capsule" rgba    =".8 .5 .3 1"/>
 	  <site name="s1_1" pos="0 0 -0.2" size="0.005"/> <!-- orginal: pos="0 0 1.5" -->
 	      <joint axis = "0 1 0" name = "hip_1" pos= "0.0 0.0 0.0" range="-90 90" type="hinge"/>
@@ -84,7 +84,7 @@
 		   <site name="touchSite1" pos="0 0 -0.2" type="sphere" size="0.064 0.064 0.064" rgba="0.8 0 0.2 1"/>
 		  </body>
         </body>
-        <body name="upper_front_right_leg" pos="0.35 -0.26 -0.06">
+        <body name="upper_front_right_leg" pos="0.35 -0.26 0.00">
             <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name="upper_aux_2_geom" size="0.06" type="capsule"/>    
             <site name="s2_1" pos="0 0 -0.2" size="0.005"/>			
 		    <joint axis="0 1 0" name="hip_2" pos="0.0 0.0 0.0" range="-90 90" type="hinge"/>
@@ -95,7 +95,7 @@
 		      <joint type="slide" axis="0 0 1" limited="false"/>
 		  </body>
         </body>
-        <body name="upper_left_back_leg" pos="-0.35 0.26 -0.06">
+        <body name="upper_left_back_leg" pos="-0.35 0.26 0.00">
           <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name="upper_aux_3_geom" size="0.06" type="capsule"/>
 		  <site name="s3_1" pos="0 0 -0.2" size="0.005"/>
 	      <joint axis="0 1 0" name="hip_3" pos="0.0 0.0 0.0" range="-90 90" type="hinge"/>
@@ -106,7 +106,7 @@
 		      <joint type="slide" axis="0 0 1" limited="false"/>
 		  </body>
         </body>
-        <body name="upper_right_back_leg" pos="-0.35 -0.26 -0.06">
+        <body name="upper_right_back_leg" pos="-0.35 -0.26 0.00">
           <geom fromto="0.0 0.0 0.0 0.0 0.0 -0.2" name="upper_aux_4_geom" size="0.06" type="capsule" rgba    =".8 .5 .3 1"/>
 		  <site name="s4_1" pos="0 0 -0.2" size="0.005"/>
 	      <joint axis="0 1 0" name="hip_4" pos="0.0 0.0 0.0" range="-90 90" type="hinge"/>
@@ -122,19 +122,19 @@
     </worldbody>
 	
 	<tendon> 
-		<spatial width = "0.02" name="tend1" rgba=".95 .3 .3 1" limited="true" range="0 0.2"> <!-- stiffness="x" written for all tendons, if no default specified. -->
+		<spatial width = "0.02" name="tend1" rgba=".95 .3 .3 1" limited="true" range="0 1"> <!-- stiffness="x" written for all tendons, if no default specified. -->
             <site site="s1_1"/>
             <site site="s1_2"/>
       	</spatial>
-		<spatial width = "0.02" name="tend2" rgba=".95 .3 .3 1" limited="true" range="0 0.2">
+		<spatial width = "0.02" name="tend2" rgba=".95 .3 .3 1" limited="true" range="0 1">
             <site site="s2_1"/>
             <site site="s2_2"/>
       	</spatial>
-		<spatial width = "0.02" name="tend3" rgba=".95 .3 .3 1" limited="true" range="0 0.2">
+		<spatial width = "0.02" name="tend3" rgba=".95 .3 .3 1" limited="true" range="0 1">
             <site site="s3_1"/>
             <site site="s3_2"/>
       	</spatial>
-		<spatial width = "0.02" name="tend4" rgba=".95 .3 .3 1" limited="true" range="0 0.2">
+		<spatial width = "0.02" name="tend4" rgba=".95 .3 .3 1" limited="true" range="0 1">
             <site site="s4_1"/>
             <site site="s4_2"/>
       	</spatial>
@@ -150,10 +150,10 @@ i     <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_side_1"/>
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_side_3"/>
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_side_4"/>
     
-     <!--  <motor ctrllimited="true" ctrlrange="-5.0 5.0" tendon="tend1" gear="150"/>
-     <motor ctrllimited="true" ctrlrange="-5.0 5.0" tendon="tend2" gear="150"/>
-     <motor ctrllimited="true" ctrlrange="-5.0 5.0" tendon="tend3" gear="150"/>
-     <motor ctrllimited="true" ctrlrange="-5.0 5.0" tendon="tend4" gear="150"/> -->
+     <motor ctrllimited="true" ctrlrange="-1.0 1.0" tendon="tend1" gear="500"/>
+     <motor ctrllimited="true" ctrlrange="-1.0 1.0" tendon="tend2" gear="500"/>
+     <motor ctrllimited="true" ctrlrange="-1.0 1.0" tendon="tend3" gear="500"/>
+     <motor ctrllimited="true" ctrlrange="-1.0 1.0" tendon="tend4" gear="500"/>
     </actuator>
 
     <sensor>

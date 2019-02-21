@@ -3,8 +3,14 @@ import numpy as np
 
 class RoboEnv():
 
-    # energy parameter
-    c = 0.001
+    # energy parame
+    e = 0.0001
+
+    #collision punishment
+    p = 0
+
+    #survival param
+    s = 0
 
     def __init__(self, xml_path):
         self.model = mjc.load_model_from_path(xml_path)
@@ -33,14 +39,14 @@ class RoboEnv():
         #energy cost
         en_cost = np.sum(np.abs(action))
 
-        reward = move_rew #- self.c*en_cost
+        reward = move_rew + self.s - self.e*en_cost
 
         #check if episode is over
         done = self.check_collision()
+        if done:
+            reward = reward - self.p
 
         state = self._get_state()
-
-        #TODO find reward bug, implement parameters for reward
 
         return reward, state, done
 

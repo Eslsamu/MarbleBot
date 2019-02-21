@@ -10,6 +10,3 @@ state_shape = np.concatenate([
        sim.data.qpos.flat,
        sim.data.qvel.flat]).shape
 viewer = mjc.MjViewer(sim)
-
-while True:
-       viewer.render()
