@@ -2,8 +2,8 @@
 WorldInfo {
 }
 Viewpoint {
-  orientation 0.5221800980772419 0.8388806765526182 0.15364620294255085 5.5708669085179645
-  position -2.513829725223979 2.152487344283605 2.454020563925001
+  orientation -0.005098574883501008 0.9999304172226854 -0.010637915539411109 5.481821915533513
+  position -3.2215138007370863 0.6157035404626513 3.7024174490920783
 }
 TexturedBackground {
 }
@@ -12,7 +12,7 @@ TexturedBackgroundLight {
 Floor {
 }
 Robot {
-  translation 0 1 0
+  translation 0 0.425 0
   children [
     DEF BODY_SHAPE Shape {
       appearance PBRAppearance {
@@ -63,6 +63,7 @@ Robot {
                 acceleration 8
                 minPosition -0.01
                 maxPosition 0.13
+                maxForce 65
               }
             ]
             endPoint Solid {
@@ -144,6 +145,7 @@ Robot {
                 acceleration 8
                 minPosition -0.01
                 maxPosition 0.13
+                maxForce 65
               }
             ]
             endPoint Solid {
@@ -217,6 +219,7 @@ Robot {
                 acceleration 8
                 minPosition -0.01
                 maxPosition 0.13
+                maxForce 65
               }
             ]
             endPoint Solid {
@@ -290,6 +293,7 @@ Robot {
                 acceleration 8
                 minPosition -0.01
                 maxPosition 0.13
+                maxForce 65
               }
             ]
             endPoint Solid {
