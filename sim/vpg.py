@@ -142,7 +142,7 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
     #tensorflow graph inputs
     obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim))
     act_ph = tf.placeholder(dtype = tf.float32, shape=(None,act_dim))
-    adv_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
+    adv_ph = tf.placeholder(dtype = tf.float3de2, shape=(None,))
     ret_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     logp_old_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     graph_inputs = [obs_ph, act_ph, adv_ph, ret_ph, logp_old_ph]
