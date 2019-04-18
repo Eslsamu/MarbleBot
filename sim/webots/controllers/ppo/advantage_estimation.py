@@ -5,7 +5,7 @@ import numpy as np
 def disc_cumsum(x, discount):
     return scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1]
     
-class Buffer:
+class Buffer():
     """
     A buffer for storing trajectories experienced by a VPG agent interacting
     with the environment, and using Generalized Advantage Estimation (GAE-Lambda)

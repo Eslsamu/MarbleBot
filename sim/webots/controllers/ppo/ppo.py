@@ -1,13 +1,24 @@
 import tensorflow as tf
 from rl_policy import actor_critic 
-import epuck_controller as robot
+import epuck_controller as controller
 from advantage_estimation import Buffer
+import numpy as np
+import time
 
 
-def ppo(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2):
+def ppo(epochs=2,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2):
+    print("init robot..")
+    print(1, time.time())
+    robot = controller.Robot_Environment()
+    if robot is not None:
+        print("robot initialized: ", robot)
+    
     act_dim = len(robot.motors)
     obs_dim = len(robot.sensors)
-
+    print("action_space: ", act_dim) 
+    print("obs_space: ", obs_dim) 
+    
+    
     #tensorflow graph inputs
     obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim))
     act_ph = tf.placeholder(dtype = tf.float32, shape=(None,act_dim))
@@ -75,8 +86,7 @@ def ppo(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
         """
 
 
-    obs, done, rew, ep_ret, ep_len = robot.reset(),False , 0 , 0, 0
-    print("observations:", obs)
+    obs, done, rew, ep_ret, ep_len = robot.reset() , False , 0 , 0, 0
 
     #visualize
     render = False
@@ -85,19 +95,15 @@ def ppo(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
     for epoch in range(epochs):
         traj_start = 0
         epoch_ret = []
-
         first_episode = True
-
+        
+        e = time.time()
         for t in range(epoch_steps):
             obs = obs.reshape(1,-1)
             a, v_t, logp_t = sess.run([pi, val, logp_pi], feed_dict={obs_ph: obs})
 
             #save traj info
             buf.store(obs,a,rew,v_t,logp_t)
-
-            if render and first_episode:
-                env.render()
-
             rew ,obs , done, = robot.step(a[0])
             ep_ret += rew
             ep_len += 1
@@ -108,7 +114,6 @@ def ppo(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
                     print("traj cut off")
                 else:
                     epoch_ret.append(ep_ret)
-
                     if first_episode:
                         print("done after steps: ", ep_len)
                         print("episode return: ", ep_ret)
@@ -120,14 +125,18 @@ def ppo(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
                 last_val = rew if done else sess.run(val, feed_dict={obs_ph: obs.reshape(1,-1)})
                 buf.finish_path(last_val)
 
-                obs, done, rew, ep_ret, ep_len = env.reset(),False, 0, 0 , 0
+                obs, done, rew, ep_ret, ep_len = robot.reset(),False, 0, 0 , 0
         print("--------------")
         print("epoch: ", epoch)
         print("average return: ", np.mean(epoch_ret) )
         print("max return: ", max(epoch_ret) )
         print("min return: ", min(epoch_ret) )
-
+        print("episodes: ",len(epoch_ret))
+        print("experience time: ",time.time()-e)
 
         #gradient update
+        t = time.time()
         update()
+        print("update time:", time.time()-t)
+
 ppo()
