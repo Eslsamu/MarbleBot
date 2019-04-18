@@ -4,7 +4,7 @@ import epuck_controller as robot
 from advantage_estimation import Buffer
 
 
-def ppo(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2):
+def ppo(epochs=4,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2):
     act_dim = len(robot.motors)
     obs_dim = len(robot.sensors)
 
