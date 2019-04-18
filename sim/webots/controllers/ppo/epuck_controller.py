@@ -10,23 +10,23 @@ INIT_ROT = [0,1,0,np.pi/2]
 TIMESTEP = 32
 
 #TODO turn into class
-class robot_environment():
+class Robot_Environment():
     #sensors
-    self.sensor_names = ["ps0", "ps1", "ps2", "ps3", "ps4", 
+    sensor_names = ["ps0", "ps1", "ps2", "ps3", "ps4", 
                     "ps5", "ps6", "ps7"]
     
     #motors
-    self.motor_names = ["left wheel motor","right wheel motor"] 
+    motor_names = ["left wheel motor","right wheel motor"] 
     
     #sampling period
-    self.sp = TIMESTEP * 4  
+    sp = TIMESTEP * 4  
     
     #direction to drive
-    self.direction = np.pi
+    direction = np.pi
     
-    def __init__(self)
+    def __init__(self):
         self.sv = Supervisor() 
-        self.robot_node = sv.getFromDef('epuck')
+        self.robot_node = self.sv.getFromDef('epuck')
         self.init_motors()
         self.init_sensors()
     
@@ -34,7 +34,7 @@ class robot_environment():
         #motors
         self.motors = []
         for n in self.motor_names:
-            self.motors.append(robot_node.getMotor(n))
+            self.motors.append(self.sv.getMotor(n))
         
         self.maxVel = self.motors[0].getMaxVelocity()
 
@@ -43,32 +43,31 @@ class robot_environment():
         #rotational field for reset purpose
         self.rot_field = self.robot_node.getField('rotation')
     
-    def init_sensor(self):
+    def init_sensors(self):
         self.sensors = []
-        for n in sensor_names:
-            self.sensors.append(sv.getDistanceSensor(n)) 
+        for n in self.sensor_names:
+            self.sensors.append(self.sv.getDistanceSensor(n)) 
             
          #enable sensors
         for s in self.sensors:
-            s.enable(sp)           
+            s.enable(self.sp)           
     
     #velocity control
     def control_motors(self, vel):
-        for m in range(len(motors)):
-            motors[m].setVelocity(vel[m])
+        for m in range(len(self.motors)):
+            self.motors[m].setVelocity(np.double(vel[m]))
      
          
     def readSensorData(self):
         data = []
         for s in self.sensors:
             data.append(s.getValue())
-        
-        return data    
+        return np.array(data)    
     
     
     
     
-    def distance_travelled(pos0, pos1,direction):
+    def distance_travelled(self, pos0, pos1,direction):
         #travlled euclidean distance
         l = np.sqrt((pos1[0]-pos0[0])**2+(pos1[2]-pos0[2])**2)
         #travelled angle (based on unit circle)
@@ -81,40 +80,40 @@ class robot_environment():
         d = (np.cos(theta)*l)
         return d
     
-    def check_collision():
+    def check_collision(self):
         return False
     
-    def step(action):
+    def step(self,action):
         #track position for distance measure
-        pos0 = trans_field.getSFVec3f()
+        pos0 = self.trans_field.getSFVec3f()
         
         #actuate the motors
-        control_motors(action)
+        self.control_motors(action)
         
-        pos1 = trans_field.getSFVec3f()
+        pos1 = self.trans_field.getSFVec3f()
         
         #compute the reward
-        rew = distance_travelled(pos0,pos1, direction)
+        rew = self.distance_travelled(pos0,pos1, self.direction)
         
         #get observations from sensors
-        obs = readSensorData()
+        obs = self.readSensorData()
         
         #check if robot simulation should be reset
-        done = check_collision
+        done = self.check_collision()
         
         return rew, obs, done 
     
     #reset simulation
-    def reset():
-        trans_field.setSFVec3f(INIT_TRANS)
-        rot_field.setSFVec3f(INIT_ROT)
+    def reset(self):
+        self.trans_field.setSFVec3f(INIT_TRANS)
+        self.rot_field.setSFVec3f(INIT_ROT)
     
-        for m in motors:
+        for m in self.motors:
             m.setPosition(0)
             m.setVelocity(0)
             m.setAcceleration(0)
      
-        sv.simulationResetPhysics()
+        self.sv.simulationResetPhysics()
         
         #return reward
-        return readSensorData()
+        return self.readSensorData()

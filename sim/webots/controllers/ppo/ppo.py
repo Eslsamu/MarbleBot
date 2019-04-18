@@ -8,10 +8,7 @@ import time
 
 def ppo(epochs=2,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2):
     print("init robot..")
-    print(1, time.time())
     robot = controller.Robot_Environment()
-    if robot is not None:
-        print("robot initialized: ", robot)
     
     act_dim = len(robot.motors)
     obs_dim = len(robot.sensors)
