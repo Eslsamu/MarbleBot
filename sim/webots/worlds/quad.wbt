@@ -1429,3 +1429,8 @@ DEF firstVersion Robot {
   controller "rouqhQuadPyCtrl"
   selfCollision TRUE
 }
+Robot {
+  name "robot(3)"
+  controller "tcpip_client"
+  supervisor TRUE
+}
