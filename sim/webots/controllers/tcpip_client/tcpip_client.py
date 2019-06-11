@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 
 def start_connection(host, port, sel):
     addr = (host,port)
-    print("starting connection to", addr)
+    print("[client]: starting connection to", addr)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     sock.connect_ex(addr)
@@ -18,7 +18,7 @@ def start_connection(host, port, sel):
     sel.register(sock, events, data=message)
 
 def write_sim_data(sock, sim_data):
-    print("write sim data")
+    print("[client]: write sim data")
     sock.send(sim_data)
     
 def read_instructions(sock):
@@ -28,7 +28,7 @@ def read_instructions(sock):
             packet = sock.recv(4096)
         except BlockingIOError:
             # Resource temporarily unavailable (errno EWOULDBLOCK)
-            print("blocked")
+            print("[client]: socket blocked")
             break
         if not packet: break
         data.append(packet)
@@ -60,20 +60,22 @@ try:
                 #TODO with instructions (must break loop here
                 #if len(instructions) > 0:
                 #    start_connection(host,port,sel)
-                if instructions:
-                    print("ins:", instructions)
+                if instructions and instructions != bytes([222]):
+                    print("[client]: instruction received:", instructions)
+                    print("[client]: write received instructions to txtfile ...")
                     f = open("instructions.txt", "w+")
                     f.write(str(instructions[0]))
                     f.close()
-                if instructions != bytes([222]):
+
                     # reload
+                    print("[client]: reload world")
                     sel.modify(sock, selectors.EVENT_WRITE, data=key.data)
                     sv = Supervisor()
                     sv.worldReload()
                 else:
-                    print("quit")
+                    print("[client] quit simulation ")
                     sv = Supervisor()
-                    sv.simulationQuit()
+                    sv.simulationQuit(status=100)
 
 
         # Check for a socket being monitored to continue.
