@@ -23,6 +23,18 @@ class Buffer():
         self.gamma, self.lam = gamma, lam
         self.ptr, self.path_start_idx, self.max_size = 0, 0, size
 
+    """
+    This method appends all timesteps of an entire episode to the buffer and
+    finishes the path with the last value of that episode. Last value 
+    is 0 if the episode cut of
+    """
+    def store_episode(self, ep_data):
+        for t in ep_data.traj:
+            (obs, act, rew, val, logp) = t
+            self.store(obs, act, rew, val, logp)
+        self.finish_path(ep_data.last_val)
+
+
     def store(self, obs, act, rew, val, logp):
         """
         Append one timestep of agent-environment interaction to the buffer.

@@ -124,17 +124,10 @@ class PPO_SV() extends Supervisor:
                     if terminated or (t==epoch_steps-1):
                         if not terminated:
                             print("traj cut off")
-                        else:
-                            epoch_ret.append(ep_ret)              
-                            print("done after steps: ", ep_len)
-                            print("episode return: ", ep_ret)
-        
-    
-    
-                    last_val = rew if done else sess.run(val, feed_dict={obs_ph: obs.reshape(1,-1)})
-                    buf.finish_path(last_val)
-    
-                    obs, done, rew, ep_ret, ep_len = env.reset(),False, 0, 0 , 0
+
+                        last_val = rew if done else sess.run(val, feed_dict={obs_ph: obs.reshape(1,-1)})
+                        buf.finish_path(last_val)
+                        obs, done, rew, ep_ret, ep_len = env.reset(),False, 0, 0 , 0
             print("--------------")
             print("epoch: ", epoch)
             print("average return: ", np.mean(epoch_ret) )

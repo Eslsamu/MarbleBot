@@ -13,7 +13,6 @@ logging.basicConfig(format='%(asctime)s %(message)s',filename='client.log',level
 
 def start_connection(host, port, sel):
     addr = (host,port)
-    logging.info("[client]: starting connection to"+ str(addr))
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     sock.connect_ex(addr)
@@ -21,10 +20,10 @@ def start_connection(host, port, sel):
     message = {"selector": sel,"socket" : sock, "address" : addr}
     sel.register(sock, events, data=message)
 
-def write_sim_data(sock, sim_data):
-    sim_data = pickle.dumps(sim_data)
-    logging.info("[client]: write sim data")
-    sock.send(sim_data)
+def write_episode_data(sock, episode_data):
+    episode_data = pickle.dumps(episode_data)
+    logging.info("[client]: write episode data")
+    sock.send(episode_data)
     
 def read_instructions(sock):
     data = []
@@ -43,19 +42,19 @@ def read_instructions(sock):
         recv_data = pickle.loads(data)
         return recv_data
 
-def run_simulation(steps):
-    sim_data = []
+def run_episode(steps):
+    episode_data = []
     robot = sv.getFromDef("robot")
     field = robot.getField("translation")
     
     for s in range(steps):
         sv.step(32)
-        sim_data.append(field.getSFVec3f())
+        episode_data.append(field.getSFVec3f())
 
-    return sim_data
+    return episode_data
 
 
-def message_server(sel, sim_data):
+def message_server(sel, episode_data):
     try:
         while True:
             logging.info("[client] waiting for connection")
@@ -65,29 +64,17 @@ def message_server(sel, sim_data):
                 sel = key.data["selector"]
 
                 if mask & selectors.EVENT_WRITE:
-                    write_sim_data(sock, sim_data)
+                    write_episode_data(sock, episode_data)
                     sel.modify(sock, selectors.EVENT_READ, data=key.data)
 
                 if mask & selectors.EVENT_READ:
-                    instructions = read_instructions(sock)
-
-                    if instructions and instructions != bytes([222]):
-                        logging.info("[client]: instruction received:" + str(instructions))
-                        logging.info("[client]: write received instructions to txtfile ...")
-                        f = open("instructions.txt", "w+")
-                        f.write(str(instructions))
-                        f.close()
-
-                        # reload
-                        logging.info("[client]: reload world")
-                        sel.modify(sock, selectors.EVENT_WRITE, data=key.data)
+                    cont = read_instructions(sock)
+                    if cont:
                         sv.worldReload()
                         return "reloaded"
                     else:
-                        logging.info("[client] quit simulation ")
                         sv.simulationQuit(status=100)
                         return "quit"
-
             # Check for a socket being monitored to continue.
             if not sel.get_map():
                 break
@@ -101,10 +88,10 @@ def message_server(sel, sim_data):
 
 logging.info("[client]: simulation is started")
 
+n_steps =
 sv = Supervisor()
 sel = selectors.DefaultSelector()
 host, port = 'localhost', 10002
-sim_data = run_simulation(steps = 10)
+episode_data = run_episode(steps = n_steps)
 start_connection(host, port, sel)
-done = message_server(sel, sim_data)
-logging.info("[client] " +str(done))
+done = message_server(sel, episode_data)
