@@ -41,7 +41,7 @@ def write_instruction(sock, instruction):
         if sent == 0:
             logging.info("[server]: socket connection broken")
 
-def close(selector, sock, adrr):
+def close(selector, sock, addr=1):
     logging.info("[server]: closing connection to" + str(addr))
     try:
         selector.unregister(sock)
@@ -99,19 +99,13 @@ try:
         events = sel.select(timeout=None)
         logging.info("[server]:"+ str(len(events))+ "events")
         for key, mask in events:
+            sock = key.fileobj
             if key.data is None:
-                accept_wrapper(key.fileobj)
-                #should also pass weights at this point
+                accept_wrapper(sock)
             else:
-                sock = key.data["connection"]
-                sel = key.data["selector"]
-                addr = key.data["address"]
-
-                logging.info("[server]: process events"+ str(addr))
                 if mask & selectors.EVENT_READ:
                     sim_data = read_sim_data(sock)
 
-                    logging.info("[server]: data received from" + str(addr))
                     # load episode data into buffer
                     ep_buf.append(sim_data)
 
@@ -139,7 +133,7 @@ try:
                         instruction = [epoch, iteration]
                         write_instruction(sock, instruction)
 
-                    close(sel, sock, addr)
+                    close(sel, sock)
 
 except KeyboardInterrupt:
     logging.info("[server]: caught keyboard interrupt, exiting")

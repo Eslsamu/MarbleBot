@@ -18,8 +18,7 @@ def start_connection(host, port, sel):
     sock.setblocking(False)
     sock.connect_ex(addr)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    message = {"selector": sel,"socket" : sock, "address" : addr}
-    sel.register(sock, events, data=message)
+    sel.register(sock, events)
 
 def write_sim_data(sock, sim_data):
     sim_data = pickle.dumps(sim_data)
@@ -61,8 +60,7 @@ def message_server(sel, sim_data):
             logging.info("[client] waiting for connection")
             events = sel.select(timeout=None)
             for key, mask in events:
-                sock = key.data["socket"]
-                sel = key.data["selector"]
+                sock = key.fileobj
 
                 if mask & selectors.EVENT_WRITE:
                     write_sim_data(sock, sim_data)
@@ -80,7 +78,6 @@ def message_server(sel, sim_data):
 
                         # reload
                         logging.info("[client]: reload world")
-                        sel.modify(sock, selectors.EVENT_WRITE, data=key.data)
                         sv.worldReload()
                         return "reloaded"
                     else:
