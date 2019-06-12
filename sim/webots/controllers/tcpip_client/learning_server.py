@@ -9,10 +9,9 @@ def accept_wrapper(sock):
     conn, addr = sock.accept()  # Should be ready to read
     logging.info("[server]: accepted connection from" + str(addr))
     conn.setblocking(False)
-
-    message = {"selector": sel, "connection": conn, "address" : addr}
+    accepted = True
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    sel.register(conn, events, data=message)
+    sel.register(conn, events, data=accepted)
 
 def read_sim_data(sock):
     data = []
