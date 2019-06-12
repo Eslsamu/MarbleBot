@@ -14,9 +14,8 @@ def accept_wrapper(sock, sel):
     logging.info("[server]: accepted connection from" + str(addr))
     conn.setblocking(False)
 
-    message = {"selector": sel, "connection": conn, "address" : addr}
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    sel.register(conn, events, data=message)
+    sel.register(conn, events)
 
 def read_episode_data(sock):
     data = []
@@ -45,14 +44,13 @@ def write_instruction(sock, instruction):
         if sent == 0:
             logging.info("[server]: socket connection broken")
 
-def close(selector, sock, addr):
-    logging.info("[server]: closing connection to" + str(addr))
+def close(selector, sock):
     try:
         selector.unregister(sock)
     except Exception as e:
         logging.info(
             f"error: selector.unregister() exception for",
-                f"{addr}: {repr(e)}",
+                f"{sock}: {repr(e)}",
         )
 
     try:
@@ -60,7 +58,7 @@ def close(selector, sock, addr):
     except OSError as e:
         logging.info(
             f"error: socket.close() exception for",
-            f"{addr}: {repr(e)}",
+            f"{sock}: {repr(e)}",
         )
     finally:
         # Delete reference to socket object for garbage collection
@@ -74,7 +72,7 @@ def setup_selector():
     lsock.listen()
     logging.info("[server]: listening on " + str(host) + str(port))
     lsock.setblocking(False)
-    sel.register(lsock, selectors.EVENT_READ, data=None)
+    sel.register(lsock, selectors.EVENT_READ)
     return sel
 
 def create_webots_instances(n_instances = 2):
@@ -94,12 +92,10 @@ def run_job(n_instances = 2, n_iterations = 3, n_steps=10):
         while processes_done < n_instances:
             events = sel.select(timeout=None)
             for key, mask in events:
+                sock = key.fileobj
                 if key.data is None:
-                    accept_wrapper(key.fileobj, sel)
+                    accept_wrapper(sock, sel)
                 else:
-                    sock = key.data["connection"]
-                    addr = key.data["address"]
-                    #TODO which selector here?
 
                     if mask & selectors.EVENT_READ:
                         ep_data = read_episode_data(sock)

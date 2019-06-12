@@ -17,8 +17,7 @@ def start_connection(host, port, sel):
     sock.setblocking(False)
     sock.connect_ex(addr)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    message = {"selector": sel,"socket" : sock, "address" : addr}
-    sel.register(sock, events, data=message)
+    sel.register(sock, events)# data=create_id())
 
 def write_episode_data(sock, episode_data):
     episode_data = pickle.dumps(episode_data)
@@ -60,8 +59,7 @@ def message_server(sel, episode_data):
             logging.info("[client] waiting for connection")
             events = sel.select(timeout=None)
             for key, mask in events:
-                sock = key.data["socket"]
-                sel = key.data["selector"]
+                sock = key.fileobj
 
                 if mask & selectors.EVENT_WRITE:
                     write_episode_data(sock, episode_data)
