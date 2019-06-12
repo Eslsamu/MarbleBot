@@ -22,7 +22,7 @@ class Message():
         self.request = request
 
     def process_events(self, mask):
-        print("process_events")
+        logging.info("process_events")
         if mask & selectors.EVENT_READ:
             self.read()
         if mask & selectors.EVENT_WRITE:
@@ -47,14 +47,14 @@ class Message():
         #TODO:
         #load pickled data
         #either use weights and restart or just restart simulation
-        print("data",data)
+        logging.info("data",data)
         pass
 
 
 
 def start_connection(host, port, episode_info):
     addr = (host,port)
-    print("starting connection to", addr)
+    logging.info("starting connection to"+ str(addr))
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     sock.connect_ex(addr)
@@ -79,6 +79,6 @@ try:
         if not sel.get_map():
             break
 except KeyboardInterrupt:
-    print("caught keyboard interrupt, exiting")
+    logging.info("caught keyboard interrupt, exiting")
 finally:
     sel.close()
