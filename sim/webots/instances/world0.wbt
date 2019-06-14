@@ -15,7 +15,7 @@ Background {
 }
 DEF sv Robot {
   controller "RL_controller"
-  controllerArgs "None"
+  controllerArgs "10 epoch_data/proc0 counter/c0.p"
   supervisor TRUE
 }
 DEF robot Robot {
