@@ -31,7 +31,6 @@ def load_sim_data(id, folder = EPOCH_DATA_FOLDER):
     files = [f for f in listdir(folder) if str(id) in f]
     sim_data = []
     for f in files:
-        print(folder,f)
         epi_data = pickle.load(open(folder+"/"+f, "rb"))
         sim_data.append(epi_data)
     return sim_data
@@ -69,7 +68,7 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, epdir = EP
                 sim_data = load_sim_data(id = i)
                 epoch_data += sim_data
                 children.remove(c)
-    print("data", epoch_data)
+    print("data", len(epoch_data))
 
 
 t = time.time()

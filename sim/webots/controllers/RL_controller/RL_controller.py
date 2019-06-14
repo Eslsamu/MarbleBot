@@ -21,7 +21,7 @@ n_steps = int(sys.argv[1])
 data_dir = sys.argv[2]
 count_file = sys.argv[3]
 sim_data = run_simulation(n_steps)
-
+#TODO append or number
 pickle.dump(sim_data, open(data_dir, "wb"))
 
 it = pickle.load(open(count_file, "rb"))
