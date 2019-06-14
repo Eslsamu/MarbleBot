@@ -71,4 +71,7 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, epdir = EP
                 children.remove(c)
     print("data", epoch_data)
 
-run_job(build_files=True)
+
+t = time.time()
+run_job(n_proc = 32, n_it = 10, n_steps= 500, build_files=True)
+print("time:", time.time()-t)
