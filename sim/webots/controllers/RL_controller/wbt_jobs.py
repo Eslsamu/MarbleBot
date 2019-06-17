@@ -89,5 +89,5 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
 
 
 t = time.time()
-run_job(n_proc = 1, n_it = 100, n_steps= 500, build_files=True)
+run_job(n_proc = 2, n_it = 50, n_steps= 500, build_files=True)
 print("time:", time.time()-t)
