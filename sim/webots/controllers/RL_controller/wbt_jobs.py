@@ -31,25 +31,27 @@ def create_worldfile(id, args, src = INIT_FILE, dest = INSTANCE_DEST):
 """
 loads the data of all timesteps that an episode gathered in an epoch
 """
-def load_sim_data(id, folder = EPOCH_DATA_FOLDER):
+def load_proc_data(id, folder = EPOCH_DATA_FOLDER):
     files = [f for f in listdir(folder) if "proc"+str(id)+"-" in f]
-    sim_data = []
+    proc_data = []
     for f in files:
         epi_data = pickle.load(open(folder+"/"+f, "rb"))
-        sim_data.append(epi_data)
-    return sim_data
+        proc_data.append(epi_data)
+    return proc_data
 
 """
 creates a specified amount of webots instances running for a given amount of total iterations
 @param build_files: true if new controller arguments have to be specified for instances 
 or new copies of world files have to be made
 """
-def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir = EPOCH_DATA_FOLDER, count_file = COUNTER_DEST, instdir = INSTANCE_DEST):
+def run_job(n_proc, total_steps, max_ep_steps, model_file, build_files = False, data_dir = EPOCH_DATA_FOLDER, count_file = COUNTER_DEST, instdir = INSTANCE_DEST):
+    steps_per_process = int(n_proc/total_steps)
+    extra_steps = n_proc % total_steps
 
     if build_files:
         worldfiles = []
         for p in range(n_proc):
-            args = [n_steps, data_dir+"/proc"+str(p)+"-", count_file + str(p) + '.p']
+            args = [max_ep_steps, data_dir+"/proc"+str(p)+"-", count_file + str(p) + '.p', model_file]
             f = create_worldfile(p, args)
             worldfiles.append(f)
     else:
@@ -58,7 +60,11 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
     children = []
     for p in range(n_proc):
         with open(count_file + str(p) + '.p', 'wb') as file:
-            pickle.dump(n_it, file)
+            #modulo steps for first process
+            if p == 0 :
+                pickle.dump(steps_per_process+extra_steps, file)
+            else:
+                pickle.dump(steps_per_process, file)
             children.append(subprocess.Popen(["webots --mode=fast --minimize --batch " + worldfiles[p]], shell=True))
 
     try:
@@ -72,8 +78,8 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
                     done = c.poll()
                     if done:
                         print(i, "done")
-                        sim_data = (load_sim_data(id=i), i)
-                        epoch_data.append(sim_data)
+                        proc_data = (load_proc_data(id=i), i)
+                        epoch_data.append(proc_data)
                         fin.append(i)
     except KeyboardInterrupt:
         print("Keyboard interrupt")
@@ -89,5 +95,5 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
 
 
 t = time.time()
-run_job(n_proc = 2, n_it = 50, n_steps= 500, build_files=True)
+run_job(n_proc = 10, n_it = 10, n_steps= 500, build_files=True)
 print("time:", time.time()-t)

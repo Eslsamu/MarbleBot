@@ -35,6 +35,9 @@ class Buffer():
         self.logp_buf[self.ptr] = logp
         self.ptr += 1
 
+    def store_epoch(self, epoch_data):
+        #TODO
+
     def finish_path(self, last_val=0):
         """
         Call this at the end of a trajectory, or when one gets cut off
