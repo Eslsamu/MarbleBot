@@ -76,11 +76,13 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
                         fin.append(i)
     except KeyboardInterrupt:
         print("Keyboard interrupt")
-        for c in children:
-            c.kill()
     finally:
         print("data", len(epoch_data)) #,epoch_data)
-
+        for c in children:
+            try:
+                c.kill()
+            except Exception:
+                pass
 
     return epoch_data
 
