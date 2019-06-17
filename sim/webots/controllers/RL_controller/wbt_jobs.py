@@ -34,7 +34,7 @@ def load_sim_data(id, folder = EPOCH_DATA_FOLDER):
     files = [f for f in listdir(folder) if str(id) in f]
     sim_data = []
     for f in files:
-        epi_data = pickle.load(open(folder+"/"+f, "rb"))
+        epi_data = pickle.load(open(folder+"/"+f+".p", "rb"))
         sim_data.append(epi_data)
     return sim_data
 
@@ -48,7 +48,7 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, epdir = EP
     if build_files:
         worldfiles = []
         for p in range(n_proc):
-            args = [n_steps, epdir+"/proc"+str(p), count_file + str(p) +'.p']
+            args = [n_steps, epdir+"/proc"+str(p)+'.p', count_file + str(p) +'.p']
             f = create_worldfile(p, args)
             worldfiles.append(f)
     else:
@@ -69,13 +69,13 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, epdir = EP
                 done = c.poll()
                 if done:
                     print(i, "done")
-                    sim_data = load_sim_data(id = i)
+                    sim_data = (load_sim_data(id = i), i)
                     epoch_data += sim_data
                     children.remove(c)
     except KeyboardInterrupt:
         print("Keyboard interrupt")
     finally:
-        print("data", len(epoch_data))
+        print("data", len(epoch_data), epoch_data)
 
     return epoch_data
 
