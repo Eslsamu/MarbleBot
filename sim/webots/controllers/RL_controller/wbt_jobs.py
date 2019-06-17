@@ -27,6 +27,9 @@ def create_worldfile(id, args, src = INIT_FILE, dest = INSTANCE_DEST):
 
     return dest
 
+"""
+loads the data of all timesteps that an episode gathered in an epoch
+"""
 def load_sim_data(id, folder = EPOCH_DATA_FOLDER):
     files = [f for f in listdir(folder) if str(id) in f]
     sim_data = []
@@ -57,20 +60,26 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, epdir = EP
             pickle.dump(n_it, file)
             children.append(subprocess.Popen(["webots --mode=fast --minimize --stdout --stderr --batch " + worldfiles[p]], shell=True))
 
-    #constantly check process to terminate and retrieve simulation data if it did
-    #stop when all processes are done
-    epoch_data = []
-    while len(epoch_data) < n_proc:
-        for i, c in enumerate(children):
-            done = c.poll()
-            if done:
-                print(i, "done")
-                sim_data = load_sim_data(id = i)
-                epoch_data += sim_data
-                children.remove(c)
-    print("data", len(epoch_data))
+    try:
+        #constantly check process to terminate and retrieve simulation data if it did
+        #stop when all processes are done
+        epoch_data = []
+        while len(epoch_data) < n_proc:
+            for i, c in enumerate(children):
+                done = c.poll()
+                if done:
+                    print(i, "done")
+                    sim_data = load_sim_data(id = i)
+                    epoch_data += sim_data
+                    children.remove(c)
+    except KeyboardInterrupt:
+        print("Keyboard interrupt")
+    finally:
+        print("data", len(epoch_data))
+
+    return epoch_data
 
 
 t = time.time()
-run_job(n_proc = 32, n_it = 10, n_steps= 500, build_files=True)
+run_job(n_proc = 32, n_it = 5, n_steps= 500, build_files=True)
 print("time:", time.time()-t)

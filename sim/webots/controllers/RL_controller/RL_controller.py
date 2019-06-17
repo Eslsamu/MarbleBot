@@ -8,7 +8,6 @@ def run_simulation(steps = 100, t = TIMESTEP):
     sim_data = []
     for s in range(steps):
         #obs = robot...
-        print(s)
         sim_data.append(s)
         sv.step(t)
     return sim_data
