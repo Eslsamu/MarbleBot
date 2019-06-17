@@ -73,7 +73,7 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
                     if done:
                         print(i, "done")
                         sim_data = (load_sim_data(id=i), i)
-                        epoch_data += sim_data
+                        epoch_data.append(sim_data)
                         fin.append(i)
     except KeyboardInterrupt:
         print("Keyboard interrupt")
