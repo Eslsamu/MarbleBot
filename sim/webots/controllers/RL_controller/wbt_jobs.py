@@ -78,7 +78,7 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
     except KeyboardInterrupt:
         print("Keyboard interrupt")
     finally:
-        print("data", len(epoch_data), np.array(epoch_data).shape, epoch_data[5]) #,epoch_data)
+        print("data", len(epoch_data), np.array(epoch_data).shape) #,epoch_data)
         for c in children:
             try:
                 c.kill()
