@@ -65,13 +65,15 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, epdir = EP
         #stop when all processes are done
         epoch_data = []
         while len(epoch_data) < n_proc:
+            fin = []
             for i, c in enumerate(children):
-                done = c.poll()
-                if done:
-                    print(i, "done")
-                    sim_data = (load_sim_data(id = i), i)
-                    epoch_data += sim_data
-                    children.remove(c)
+                if i not in fin:
+                    done = c.poll()
+                    if done:
+                        print(i, "done")
+                        sim_data = (load_sim_data(id=i), i)
+                        epoch_data += sim_data
+                        fin.append(i)
     except KeyboardInterrupt:
         print("Keyboard interrupt")
     finally:
