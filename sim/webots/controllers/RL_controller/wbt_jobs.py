@@ -59,7 +59,7 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
     for p in range(n_proc):
         with open(count_file + str(p) + '.p', 'wb') as file:
             pickle.dump(n_it, file)
-            children.append(subprocess.Popen(["webots --mode=fast --minimize --stdout --stderr --batch " + worldfiles[p]], shell=True))
+            children.append(subprocess.Popen(["webots --mode=fast --minimize --stderr --batch " + worldfiles[p]], shell=True))
 
     try:
         #constantly check process to terminate and retrieve simulation data if it did
