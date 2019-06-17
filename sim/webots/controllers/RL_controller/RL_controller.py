@@ -24,7 +24,7 @@ sim_data = run_simulation(n_steps)
 it = pickle.load(open(count_file, "rb"))
 pickle.dump(sim_data, open(data_dir+str(it), "wb"))
 
-if it == 0:
+if it == 1:
     sv.simulationQuit(1)
 else:
     it -= 1
