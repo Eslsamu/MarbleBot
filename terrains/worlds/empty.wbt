@@ -1,0 +1,1434 @@
+#VRML_SIM R2019a utf8
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.42643787311606157 -0.8643852995053742 -0.2664372240721146 1.2742677901509687
+  position -4.433732765051474 5.269456829933583 5.139066954834447
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+Floor {
+}
+DEF secondVersionWithMotors Robot {
+  translation 0.1 0.28 -2
+  children [
+    DEF perfectTorso Solid {
+      translation -0.2575 0 -0.1
+      children [
+        DEF shoulderHip Hinge2Joint {
+          jointParameters HingeJointParameters {
+            anchor 0.395 0.025 0.2
+            minStop -0.5
+            maxStop 0.5
+          }
+          jointParameters2 JointParameters {
+            minStop -3.14
+            maxStop 3.14
+          }
+          device [
+            DEF RotMot1 RotationalMotor {
+              name "rotational motor1"
+              acceleration 1.5
+              maxVelocity 3
+              minPosition -0.5
+              maxPosition 0.5
+            }
+          ]
+          device2 [
+            DEF RotMot2 RotationalMotor {
+              name "rotational motor2"
+              acceleration 1.5
+              maxVelocity 3
+              minPosition -3.14
+              maxPosition 3.14
+            }
+          ]
+          endPoint Solid {
+            translation 0.395 0.025 0.21250000000000002
+            rotation 0 1 0 3.141592644
+            children [
+              DEF upperlegbodyconnector Shape {
+                appearance PBRAppearance {
+                  baseColor 0.04 1 0.68
+                }
+                geometry Box {
+                  size 0.05 0.05 0.025
+                }
+              }
+              Solid {
+                translation 0 -0.065 -0.0275
+                children [
+                  DEF upperLeg Shape {
+                    appearance PBRAppearance {
+                    }
+                    geometry Box {
+                      size 0.05 0.18 0.03
+                    }
+                  }
+                  Transform {
+                    translation 0 -0.11 0.026
+                    children [
+                      SliderJoint {
+                        jointParameters JointParameters {
+                          position 0.01
+                          axis 0 1 0
+                          minStop -0.01
+                          maxStop 0.085
+                        }
+                        device [
+                          DEF LinMot1 LinearMotor {
+                            name "linear motor1"
+                            acceleration 0.75
+                            maxVelocity 0.2
+                            minPosition -0.01
+                            maxPosition 0.085
+                            maxForce 58.5
+                          }
+                        ]
+                        endPoint Solid {
+                          translation 0 0.01 0
+                          children [
+                            SliderJoint {
+                              jointParameters JointParameters {
+                                axis 0 1 0
+                                maxStop 0.04
+                                springConstant 3000
+                              }
+                              endPoint Solid {
+                                translation 0 -0.09 0
+                                children [
+                                  DEF foot Shape {
+                                    appearance PBRAppearance {
+                                      baseColor 1 0.2 0.1
+                                    }
+                                    geometry Capsule {
+                                      height 0.03
+                                      radius 0.01
+                                    }
+                                  }
+                                ]
+                                boundingObject USE foot
+                                physics Physics {
+                                  density -1
+                                  mass 0.1
+                                }
+                              }
+                            }
+                            DEF lowerandupperlegconnector Shape {
+                              appearance PBRAppearance {
+                                baseColor 0.5 0.9 0.1
+                              }
+                              geometry Box {
+                                size 0.025 0.06 0.02
+                              }
+                            }
+                          ]
+                          boundingObject USE lowerandupperlegconnector
+                          physics Physics {
+                            mass 0.15
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+                boundingObject USE upperLeg
+                physics Physics {
+                  mass 0.17
+                }
+              }
+            ]
+            name "solid(3)"
+            boundingObject USE upperlegbodyconnector
+            physics Physics {
+              mass 0.03
+            }
+          }
+        }
+        DEF shoulderHip2 Hinge2Joint {
+          jointParameters HingeJointParameters {
+            anchor 0.12 0.025 0.2
+            minStop -0.5
+            maxStop 0.5
+          }
+          jointParameters2 JointParameters {
+            minStop -3.14
+            maxStop 3.14
+          }
+          device [
+            RotationalMotor {
+              name "rotational motor3"
+              acceleration 1.5
+              maxVelocity 3
+              minPosition -0.5
+              maxPosition 0.5
+            }
+          ]
+          device2 [
+            RotationalMotor {
+              name "rotational motor4"
+              acceleration 1.5
+              maxVelocity 3
+              minPosition -3.14
+              maxPosition 3.14
+            }
+          ]
+          endPoint Solid {
+            translation 0.12000000057538757 0.025 0.21250000000000002
+            rotation 0 1 0 3.141592644
+            children [
+              DEF upperlegbodyconnector Shape {
+                appearance PBRAppearance {
+                  baseColor 0.04 1 0.68
+                }
+                geometry DEF boxer1 Box {
+                  size 0.05 0.05 0.025
+                }
+              }
+              Solid {
+                translation 0 -0.065 -0.0275
+                children [
+                  DEF upperLeg Shape {
+                    appearance PBRAppearance {
+                    }
+                    geometry Box {
+                      size 0.05 0.18 0.03
+                    }
+                  }
+                  Transform {
+                    translation 0 -0.11 0.026
+                    children [
+                      SliderJoint {
+                        jointParameters JointParameters {
+                          position 0.01
+                          axis 0 1 0
+                          minStop -0.01
+                          maxStop 0.085
+                        }
+                        device [
+                          LinearMotor {
+                            name "linear motor4"
+                            acceleration 0.75
+                            maxVelocity 0.2
+                            minPosition -0.01
+                            maxPosition 0.085
+                            maxForce 58.5
+                          }
+                        ]
+                        endPoint Solid {
+                          translation 0 0.01 0
+                          children [
+                            SliderJoint {
+                              jointParameters JointParameters {
+                                axis 0 1 0
+                                maxStop 0.04
+                                springConstant 3000
+                              }
+                              endPoint Solid {
+                                translation 0 -0.09 0
+                                children [
+                                  DEF foot Shape {
+                                    appearance PBRAppearance {
+                                      baseColor 1 0.2 0.1
+                                    }
+                                    geometry Capsule {
+                                      height 0.03
+                                      radius 0.01
+                                    }
+                                  }
+                                ]
+                                boundingObject USE foot
+                                physics Physics {
+                                  density -1
+                                  mass 0.1
+                                }
+                              }
+                            }
+                            DEF lowerandupperlegconnector Shape {
+                              appearance PBRAppearance {
+                                baseColor 0.5 0.9 0.1
+                              }
+                              geometry Box {
+                                size 0.025 0.06 0.02
+                              }
+                            }
+                          ]
+                          boundingObject USE lowerandupperlegconnector
+                          physics Physics {
+                            density -1
+                            mass 0.15
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+                boundingObject USE upperLeg
+                physics Physics {
+                  density -1
+                  mass 0.17
+                }
+              }
+            ]
+            name "solid(2)"
+            boundingObject USE upperlegbodyconnector
+            physics Physics {
+              density -1
+              mass 0.03
+            }
+          }
+        }
+        DEF shoulderHip3 Hinge2Joint {
+          jointParameters HingeJointParameters {
+            anchor 0.395 0.025 0
+            minStop -0.5
+            maxStop 0.5
+          }
+          jointParameters2 JointParameters {
+            minStop -3.14
+            maxStop 3.14
+          }
+          device [
+            RotationalMotor {
+              name "rotational motor5"
+              acceleration 1.5
+              maxVelocity 3
+              minPosition -0.5
+              maxPosition 0.5
+            }
+          ]
+          device2 [
+            RotationalMotor {
+              name "rotational motor6"
+              acceleration 1.5
+              maxVelocity 3
+              minPosition -3.14
+              maxPosition 3.14
+            }
+          ]
+          endPoint Solid {
+            translation 0.395 0.025 -0.0125
+            children [
+              DEF upperlegbodyconnector Shape {
+                appearance PBRAppearance {
+                  baseColor 0.04 1 0.68
+                }
+                geometry Box {
+                  size 0.05 0.05 0.025
+                }
+              }
+              Solid {
+                translation 0 -0.065 -0.0275
+                children [
+                  DEF upperLeg Shape {
+                    appearance PBRAppearance {
+                    }
+                    geometry Box {
+                      size 0.05 0.18 0.03
+                    }
+                  }
+                  Transform {
+                    translation 0 -0.11 0.026
+                    children [
+                      SliderJoint {
+                        jointParameters JointParameters {
+                          position 0.01
+                          axis 0 1 0
+                          minStop -0.01
+                          maxStop 0.085
+                        }
+                        device [
+                          LinearMotor {
+                            name "linear motor2"
+                            acceleration 0.75
+                            maxVelocity 0.2
+                            minPosition -0.01
+                            maxPosition 0.085
+                            maxForce 58.5
+                          }
+                        ]
+                        endPoint Solid {
+                          translation 0 0.01 0
+                          children [
+                            SliderJoint {
+                              jointParameters JointParameters {
+                                axis 0 1 0
+                                maxStop 0.04
+                                springConstant 3000
+                              }
+                              endPoint Solid {
+                                translation 0 -0.09 0
+                                children [
+                                  DEF foot Shape {
+                                    appearance PBRAppearance {
+                                      baseColor 1 0.2 0.1
+                                    }
+                                    geometry Capsule {
+                                      height 0.03
+                                      radius 0.01
+                                    }
+                                  }
+                                ]
+                                boundingObject USE foot
+                                physics Physics {
+                                  density -1
+                                  mass 0.1
+                                }
+                              }
+                            }
+                            DEF lowerandupperlegconnector Shape {
+                              appearance PBRAppearance {
+                                baseColor 0.5 0.9 0.1
+                              }
+                              geometry Box {
+                                size 0.025 0.06 0.02
+                              }
+                            }
+                          ]
+                          boundingObject USE lowerandupperlegconnector
+                          physics Physics {
+                            density -1
+                            mass 0.15
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+                boundingObject USE upperLeg
+                physics Physics {
+                  density -1
+                  mass 0.17
+                }
+              }
+            ]
+            name "solid(1)"
+            boundingObject USE upperlegbodyconnector
+            physics Physics {
+              density -1
+              mass 0.03
+              centerOfMass [
+                0 0 0
+              ]
+            }
+          }
+        }
+        DEF BetterTorso Shape {
+          appearance PBRAppearance {
+            baseColor 1 0.2 0.65
+          }
+          geometry IndexedFaceSet {
+            coord Coordinate {
+              point [
+                0 0 0
+                0 0 0.2
+                0 0.05 0
+                0 0.05 0.2
+                0 0.14 0.04
+                0 0.14 0.16
+                0.515 0 0
+                0.515 0 0.2
+                0.515 0.05 0
+                0.515 0.05 0.2
+                0.515 0.14 0.04
+                0.515 0.14 0.16
+              ]
+            }
+            coordIndex [
+              0, 1, 2, -1, 2, 1, 3, -1, 2, 3, 4, -1, 4, 3, 5, -1, 1, 7, 3, -1, 3, 7, 9, -1, 3, 9, 5, -1, 5, 9, 11, -1, 4, 5, 11, -1, 4, 11, 10, -1, 4, 10, 8, -1, 2, 4, 8, -1, 0, 2, 6, -1, 2, 8, 6, -1, 0, 6, 1, -1, 1, 6, 7, -1, 6, 8, 7, -1, 7, 8, 9, -1, 8, 10, 9, -1, 10, 11, 9
+            ]
+          }
+        }
+        DEF shoulderHip4 Hinge2Joint {
+          jointParameters HingeJointParameters {
+            anchor 0.12 0.025 0
+            minStop -0.5
+            maxStop 0.5
+          }
+          jointParameters2 JointParameters {
+            minStop -3.14
+            maxStop 3.14
+          }
+          device [
+            RotationalMotor {
+              name "rotational motor7"
+              acceleration 1.5
+              maxVelocity 3
+              minPosition -0.5
+              maxPosition 0.5
+            }
+          ]
+          device2 [
+            RotationalMotor {
+              name "rotational motor8"
+              acceleration 1.5
+              maxVelocity 3
+              minPosition -3.14
+              maxPosition 3.14
+            }
+          ]
+          endPoint Solid {
+            translation 0.12 0.025 -0.0125
+            children [
+              DEF upperlegbodyconnector Shape {
+                appearance PBRAppearance {
+                  baseColor 0.04 1 0.68
+                }
+                geometry Box {
+                  size 0.05 0.05 0.025
+                }
+              }
+              Solid {
+                translation 0 -0.065 -0.0275
+                children [
+                  DEF upperLeg Shape {
+                    appearance PBRAppearance {
+                    }
+                    geometry Box {
+                      size 0.05 0.18 0.03
+                    }
+                  }
+                  Transform {
+                    translation 0 -0.11 0.026
+                    children [
+                      SliderJoint {
+                        jointParameters JointParameters {
+                          position 0.01
+                          axis 0 1 0
+                          minStop -0.01
+                          maxStop 0.085
+                        }
+                        device [
+                          LinearMotor {
+                            name "linear motor3"
+                            acceleration 0.75
+                            maxVelocity 0.2
+                            minPosition -0.01
+                            maxPosition 0.085
+                            maxForce 58.5
+                          }
+                        ]
+                        endPoint Solid {
+                          translation 0 0.01 0
+                          children [
+                            SliderJoint {
+                              jointParameters JointParameters {
+                                axis 0 1 0
+                                maxStop 0.04
+                                springConstant 3000
+                              }
+                              endPoint Solid {
+                                translation 0 -0.09 0
+                                children [
+                                  DEF foot Shape {
+                                    appearance PBRAppearance {
+                                      baseColor 1 0.2 0.1
+                                    }
+                                    geometry Capsule {
+                                      height 0.03
+                                      radius 0.01
+                                    }
+                                  }
+                                ]
+                                boundingObject USE foot
+                                physics Physics {
+                                  density -1
+                                  mass 0.1
+                                }
+                              }
+                            }
+                            DEF lowerandupperlegconnector Shape {
+                              appearance PBRAppearance {
+                                baseColor 0.5 0.9 0.1
+                              }
+                              geometry Box {
+                                size 0.025 0.06 0.02
+                              }
+                            }
+                          ]
+                          boundingObject USE lowerandupperlegconnector
+                          physics Physics {
+                            density -1
+                            mass 0.15
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+                boundingObject USE upperLeg
+                physics Physics {
+                  density -1
+                  mass 0.17
+                }
+              }
+            ]
+            boundingObject USE upperlegbodyconnector
+            physics Physics {
+              density -1
+              mass 0.03
+            }
+          }
+        }
+      ]
+      boundingObject USE BetterTorso
+      physics Physics {
+        density -1
+        mass 12
+      }
+    }
+  ]
+  name "robot(2)"
+  physics Physics {
+  }
+  controller "withSupervisor"
+  supervisor TRUE
+  selfCollision TRUE
+}
+DEF secondVersion Robot {
+  translation 3.089999999999999 1.680000000000001 2.779999999999992
+  children [
+    DEF perfectTorso Solid {
+      translation -0.2575 0 -0.1
+      children [
+        DEF shoulderHip Hinge2Joint {
+          jointParameters HingeJointParameters {
+            anchor 0.395 0.025 0.2
+            minStop -0.5
+            maxStop 0.5
+          }
+          jointParameters2 JointParameters {
+            minStop -3.14
+            maxStop 3.14
+          }
+          endPoint Solid {
+            translation 0.395 0.025 0.21250000000000002
+            rotation 0 1 0 3.141592644
+            children [
+              DEF upperlegbodyconnector Shape {
+                appearance PBRAppearance {
+                  baseColor 0.04 1 0.68
+                }
+                geometry Box {
+                  size 0.05 0.05 0.025
+                }
+              }
+              Solid {
+                translation 0 -0.065 -0.0275
+                children [
+                  DEF upperLeg Shape {
+                    appearance PBRAppearance {
+                    }
+                    geometry Box {
+                      size 0.05 0.18 0.03
+                    }
+                  }
+                  Transform {
+                    translation 0 -0.11 0.026
+                    children [
+                      SliderJoint {
+                        jointParameters JointParameters {
+                          axis 0 1 0
+                          maxStop 0.085
+                          springConstant 2
+                        }
+                        endPoint Solid {
+                          children [
+                            SliderJoint {
+                              jointParameters JointParameters {
+                                axis 0 1 0
+                                maxStop 0.04
+                                springConstant 3000
+                              }
+                              endPoint Solid {
+                                translation 0 -0.09 0
+                                children [
+                                  DEF foot Shape {
+                                    appearance PBRAppearance {
+                                      baseColor 1 0.2 0.1
+                                    }
+                                    geometry Capsule {
+                                      height 0.03
+                                      radius 0.01
+                                    }
+                                  }
+                                ]
+                                boundingObject USE foot
+                                physics Physics {
+                                  density -1
+                                  mass 0.1
+                                }
+                              }
+                            }
+                            DEF lowerandupperlegconnector Shape {
+                              appearance PBRAppearance {
+                                baseColor 0.5 0.9 0.1
+                              }
+                              geometry Box {
+                                size 0.025 0.06 0.02
+                              }
+                            }
+                          ]
+                          boundingObject USE lowerandupperlegconnector
+                          physics Physics {
+                            mass 0.15
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+                boundingObject USE upperLeg
+                physics Physics {
+                  mass 0.17
+                }
+              }
+            ]
+            name "solid(3)"
+            boundingObject USE upperlegbodyconnector
+            physics Physics {
+              mass 0.03
+            }
+          }
+        }
+        DEF shoulderHip2 Hinge2Joint {
+          jointParameters HingeJointParameters {
+            anchor 0.12 0.025 0.2
+            minStop -0.5
+            maxStop 0.5
+          }
+          jointParameters2 JointParameters {
+            minStop -3.14
+            maxStop 3.14
+          }
+          endPoint Solid {
+            translation 0.12000000057538757 0.025 0.21250000000000002
+            rotation 0 1 0 3.141592644
+            children [
+              DEF upperlegbodyconnector Shape {
+                appearance PBRAppearance {
+                  baseColor 0.04 1 0.68
+                }
+                geometry DEF boxer2 Box {
+                  size 0.05 0.05 0.025
+                }
+              }
+              Solid {
+                translation 0 -0.065 -0.0275
+                children [
+                  DEF upperLeg Shape {
+                    appearance PBRAppearance {
+                    }
+                    geometry Box {
+                      size 0.05 0.18 0.03
+                    }
+                  }
+                  Transform {
+                    translation 0 -0.11 0.026
+                    children [
+                      SliderJoint {
+                        jointParameters JointParameters {
+                          axis 0 1 0
+                          maxStop 0.085
+                        }
+                        endPoint Solid {
+                          children [
+                            SliderJoint {
+                              jointParameters JointParameters {
+                                axis 0 1 0
+                                maxStop 0.04
+                                springConstant 3000
+                              }
+                              endPoint Solid {
+                                translation 0 -0.09 0
+                                children [
+                                  DEF foot Shape {
+                                    appearance PBRAppearance {
+                                      baseColor 1 0.2 0.1
+                                    }
+                                    geometry Capsule {
+                                      height 0.03
+                                      radius 0.01
+                                    }
+                                  }
+                                ]
+                                boundingObject USE foot
+                                physics Physics {
+                                  density -1
+                                  mass 0.1
+                                }
+                              }
+                            }
+                            DEF lowerandupperlegconnector Shape {
+                              appearance PBRAppearance {
+                                baseColor 0.5 0.9 0.1
+                              }
+                              geometry Box {
+                                size 0.025 0.06 0.02
+                              }
+                            }
+                          ]
+                          boundingObject USE lowerandupperlegconnector
+                          physics Physics {
+                            density -1
+                            mass 0.15
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+                boundingObject USE upperLeg
+                physics Physics {
+                  density -1
+                  mass 0.17
+                }
+              }
+            ]
+            name "solid(2)"
+            boundingObject USE upperlegbodyconnector
+            physics Physics {
+              density -1
+              mass 0.03
+            }
+          }
+        }
+        DEF shoulderHip3 Hinge2Joint {
+          jointParameters HingeJointParameters {
+            anchor 0.395 0.025 0
+            minStop -0.5
+            maxStop 0.5
+          }
+          jointParameters2 JointParameters {
+            minStop -3.14
+            maxStop 3.14
+          }
+          endPoint Solid {
+            translation 0.395 0.025 -0.0125
+            children [
+              DEF upperlegbodyconnector Shape {
+                appearance PBRAppearance {
+                  baseColor 0.04 1 0.68
+                }
+                geometry Box {
+                  size 0.05 0.05 0.025
+                }
+              }
+              Solid {
+                translation 0 -0.065 -0.0275
+                children [
+                  DEF upperLeg Shape {
+                    appearance PBRAppearance {
+                    }
+                    geometry Box {
+                      size 0.05 0.18 0.03
+                    }
+                  }
+                  Transform {
+                    translation 0 -0.11 0.026
+                    children [
+                      SliderJoint {
+                        jointParameters JointParameters {
+                          axis 0 1 0
+                          maxStop 0.085
+                        }
+                        endPoint Solid {
+                          children [
+                            SliderJoint {
+                              jointParameters JointParameters {
+                                axis 0 1 0
+                                maxStop 0.04
+                                springConstant 3000
+                              }
+                              endPoint Solid {
+                                translation 0 -0.09 0
+                                children [
+                                  DEF foot Shape {
+                                    appearance PBRAppearance {
+                                      baseColor 1 0.2 0.1
+                                    }
+                                    geometry Capsule {
+                                      height 0.03
+                                      radius 0.01
+                                    }
+                                  }
+                                ]
+                                boundingObject USE foot
+                                physics Physics {
+                                  density -1
+                                  mass 0.1
+                                }
+                              }
+                            }
+                            DEF lowerandupperlegconnector Shape {
+                              appearance PBRAppearance {
+                                baseColor 0.5 0.9 0.1
+                              }
+                              geometry Box {
+                                size 0.025 0.06 0.02
+                              }
+                            }
+                          ]
+                          boundingObject USE lowerandupperlegconnector
+                          physics Physics {
+                            density -1
+                            mass 0.15
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+                boundingObject USE upperLeg
+                physics Physics {
+                  density -1
+                  mass 0.17
+                }
+              }
+            ]
+            name "solid(1)"
+            boundingObject USE upperlegbodyconnector
+            physics Physics {
+              density -1
+              mass 0.03
+              centerOfMass [
+                0 0 0
+              ]
+            }
+          }
+        }
+        DEF BetterTorso Shape {
+          appearance PBRAppearance {
+            baseColor 0.1 0.4 0.65
+          }
+          geometry IndexedFaceSet {
+            coord Coordinate {
+              point [
+                0 0 0
+                0 0 0.2
+                0 0.05 0
+                0 0.05 0.2
+                0 0.14 0.04
+                0 0.14 0.16
+                0.515 0 0
+                0.515 0 0.2
+                0.515 0.05 0
+                0.515 0.05 0.2
+                0.515 0.14 0.04
+                0.515 0.14 0.16
+              ]
+            }
+            coordIndex [
+              0, 1, 2, -1, 2, 1, 3, -1, 2, 3, 4, -1, 4, 3, 5, -1, 1, 7, 3, -1, 3, 7, 9, -1, 3, 9, 5, -1, 5, 9, 11, -1, 4, 5, 11, -1, 4, 11, 10, -1, 4, 10, 8, -1, 2, 4, 8, -1, 0, 2, 6, -1, 2, 8, 6, -1, 0, 6, 1, -1, 1, 6, 7, -1, 6, 8, 7, -1, 7, 8, 9, -1, 8, 10, 9, -1, 10, 11, 9
+            ]
+          }
+        }
+        DEF shoulderHip4 Hinge2Joint {
+          jointParameters HingeJointParameters {
+            anchor 0.12 0.025 0
+            minStop -0.5
+            maxStop 0.5
+          }
+          jointParameters2 JointParameters {
+            minStop -3.14
+            maxStop 3.14
+          }
+          endPoint Solid {
+            translation 0.12 0.025 -0.0125
+            children [
+              DEF upperlegbodyconnector Shape {
+                appearance PBRAppearance {
+                  baseColor 0.04 1 0.68
+                }
+                geometry Box {
+                  size 0.05 0.05 0.025
+                }
+              }
+              Solid {
+                translation 0 -0.065 -0.0275
+                children [
+                  DEF upperLeg Shape {
+                    appearance PBRAppearance {
+                    }
+                    geometry Box {
+                      size 0.05 0.18 0.03
+                    }
+                  }
+                  Transform {
+                    translation 0 -0.11 0.026
+                    children [
+                      SliderJoint {
+                        jointParameters JointParameters {
+                          axis 0 1 0
+                          maxStop 0.085
+                          springConstant 2
+                        }
+                        endPoint Solid {
+                          children [
+                            SliderJoint {
+                              jointParameters JointParameters {
+                                axis 0 1 0
+                                maxStop 0.04
+                                springConstant 3000
+                              }
+                              endPoint Solid {
+                                translation 0 -0.09 0
+                                children [
+                                  DEF foot Shape {
+                                    appearance PBRAppearance {
+                                      baseColor 1 0.2 0.1
+                                    }
+                                    geometry Capsule {
+                                      height 0.03
+                                      radius 0.01
+                                    }
+                                  }
+                                ]
+                                boundingObject USE foot
+                                physics Physics {
+                                  density -1
+                                  mass 0.1
+                                }
+                              }
+                            }
+                            DEF lowerandupperlegconnector Shape {
+                              appearance PBRAppearance {
+                                baseColor 0.5 0.9 0.1
+                              }
+                              geometry Box {
+                                size 0.025 0.06 0.02
+                              }
+                            }
+                          ]
+                          boundingObject USE lowerandupperlegconnector
+                          physics Physics {
+                            density -1
+                            mass 0.15
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+                boundingObject USE upperLeg
+                physics Physics {
+                  density -1
+                  mass 0.17
+                }
+              }
+            ]
+            boundingObject USE upperlegbodyconnector
+            physics Physics {
+              density -1
+              mass 0.03
+            }
+          }
+        }
+      ]
+      boundingObject USE BetterTorso
+      physics Physics {
+        density -1
+        mass 12
+      }
+    }
+  ]
+  name "robot(1)"
+  physics Physics {
+  }
+  controller ""
+  selfCollision TRUE
+}
+DEF Heightfield1 Solid {
+  translation 1.3200000000000016 0.3499999999999992 0.9999999999999993
+  children [
+    DEF elevgrid Shape {
+      appearance PBRAppearance {
+        baseColor 0.4 0.12 1
+        roughness 0.75
+        metalness 0.65
+      }
+      geometry DEF elevgridGeom ElevationGrid {
+        color Color {
+          color [
+            0.2 0.8 0.4
+          ]
+        }
+        height [
+          0, 0.42, 0.2, 0.11, 0.3, 0.04, 0.1, 0.02, 0.6, 0.6
+          0.8, 0.2, 0, 0.14, 0.1, 0, 0.4, 0, 1, 0.2
+          0.39, 0.43, 0.21, 0.62, 0.71
+        ]
+        xDimension 5
+        zDimension 5
+        thickness 0.25
+      }
+    }
+  ]
+  name "solid(4)"
+  boundingObject USE elevgridGeom
+}
+DEF firstVersion Robot {
+  translation 0 0.425 4.189999999999992
+  children [
+    Gyro {
+    }
+    DEF perfectTorso Solid {
+      translation -0.2575 0 -0.1
+      children [
+        DEF BetterTorso Shape {
+          appearance PBRAppearance {
+            baseColor 1 0.2 0.65
+          }
+          geometry IndexedFaceSet {
+            coord Coordinate {
+              point [
+                0 0 0
+                0 0 0.2
+                0 0.05 0
+                0 0.05 0.2
+                0 0.14 0.04
+                0 0.14 0.16
+                0.515 0 0
+                0.515 0 0.2
+                0.515 0.05 0
+                0.515 0.05 0.2
+                0.515 0.14 0.04
+                0.515 0.14 0.16
+              ]
+            }
+            coordIndex [
+              0, 1, 2, -1, 2, 1, 3, -1, 2, 3, 4, -1, 4, 3, 5, -1, 1, 7, 3, -1, 3, 7, 9, -1, 3, 9, 5, -1, 5, 9, 11, -1, 4, 5, 11, -1, 4, 11, 10, -1, 4, 10, 8, -1, 2, 4, 8, -1, 0, 2, 6, -1, 2, 8, 6, -1, 0, 6, 1, -1, 1, 6, 7, -1, 6, 8, 7, -1, 7, 8, 9, -1, 8, 10, 9, -1, 10, 11, 9
+            ]
+          }
+        }
+      ]
+      boundingObject USE BetterTorso
+      physics Physics {
+        mass 7.5
+      }
+    }
+    Hinge2Joint {
+      jointParameters HingeJointParameters {
+        anchor 0.1375 0 0.135
+        minStop -0.5
+        maxStop 0.5
+      }
+      jointParameters2 JointParameters {
+        minStop -3.14
+        maxStop 3.14
+      }
+      device [
+        RotationalMotor {
+          name "rotational motor1"
+          acceleration 8
+          minPosition -0.5
+          maxPosition 0.5
+        }
+      ]
+      device2 [
+        RotationalMotor {
+          name "rotational motor2"
+          acceleration 8
+          minPosition -3.14
+          maxPosition 3.14
+        }
+      ]
+      endPoint Solid {
+        translation 0.1375 -0.075 0.135
+        children [
+          DEF LEG_SLIDE SliderJoint {
+            jointParameters JointParameters {
+              axis 0 1 0
+              minStop -0.01
+              maxStop 0.13
+            }
+            device [
+              LinearMotor {
+                name "linear motor1"
+                acceleration 8
+                minPosition -0.01
+                maxPosition 0.13
+                maxForce 65
+              }
+            ]
+            endPoint Solid {
+              translation 0 -0.2 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.6 0.1 0.65
+                  }
+                  geometry Capsule {
+                    height 0.15
+                    radius 0.04
+                  }
+                }
+              ]
+              name "solida"
+              boundingObject Capsule {
+                height 0.15
+                radius 0.04
+              }
+              physics Physics {
+                mass 0.35
+              }
+            }
+          }
+          DEF UPPER_LEG Shape {
+            appearance PBRAppearance {
+              baseColor 0 1 0
+            }
+            geometry Capsule {
+              height 0.15
+              radius 0.05
+            }
+          }
+        ]
+        name "solid1"
+        boundingObject USE UPPER_LEG
+        physics Physics {
+          mass 0.5
+        }
+      }
+    }
+    Hinge2Joint {
+      jointParameters HingeJointParameters {
+        anchor 0.1375 0 -0.135
+        minStop -0.5
+        maxStop 0.5
+      }
+      jointParameters2 JointParameters {
+        minStop -3.14
+        maxStop 3.14
+      }
+      device [
+        RotationalMotor {
+          name "rotational motor3"
+          acceleration 8
+          minPosition -0.5
+          maxPosition 0.5
+        }
+      ]
+      device2 [
+        RotationalMotor {
+          name "rotational motor4"
+          acceleration 8
+          minPosition -3.14
+          maxPosition 3.14
+        }
+      ]
+      endPoint Solid {
+        translation 0.1375 -0.075 -0.135
+        children [
+          DEF LEG_SLIDE SliderJoint {
+            jointParameters JointParameters {
+              axis 0 1 0
+              minStop -0.01
+              maxStop 0.13
+            }
+            device [
+              LinearMotor {
+                name "linear motor2"
+                acceleration 8
+                minPosition -0.01
+                maxPosition 0.13
+                maxForce 65
+              }
+            ]
+            endPoint Solid {
+              translation 0 -0.2 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0 0 1
+                  }
+                  geometry Capsule {
+                    height 0.15
+                    radius 0.04
+                  }
+                }
+              ]
+              name "solida"
+              boundingObject Capsule {
+                height 0.15
+                radius 0.04
+              }
+              physics Physics {
+                mass 0.35
+              }
+            }
+          }
+          USE UPPER_LEG
+        ]
+        name "solid2"
+        boundingObject USE UPPER_LEG
+        physics Physics {
+          mass 0.5
+        }
+      }
+    }
+    Hinge2Joint {
+      jointParameters HingeJointParameters {
+        anchor -0.1375 0 0.135
+        minStop -0.5
+        maxStop 0.5
+      }
+      jointParameters2 JointParameters {
+        minStop -3.14
+        maxStop 3.14
+      }
+      device [
+        RotationalMotor {
+          name "rotational motor5"
+          acceleration 8
+          minPosition -0.5
+          maxPosition 0.5
+        }
+      ]
+      device2 [
+        RotationalMotor {
+          name "rotational motor6"
+          acceleration 8
+          minPosition -3.14
+          maxPosition 3.14
+        }
+      ]
+      endPoint Solid {
+        translation -0.1375 -0.075 0.135
+        children [
+          DEF LEG_SLIDE SliderJoint {
+            jointParameters JointParameters {
+              axis 0 1 0
+              minStop -0.01
+              maxStop 0.13
+            }
+            device [
+              LinearMotor {
+                name "linear motor3"
+                acceleration 8
+                minPosition -0.01
+                maxPosition 0.13
+                maxForce 65
+              }
+            ]
+            endPoint Solid {
+              translation 0 -0.2 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0 0 1
+                  }
+                  geometry Capsule {
+                    height 0.15
+                    radius 0.04
+                  }
+                }
+              ]
+              name "solida"
+              boundingObject Capsule {
+                height 0.15
+                radius 0.04
+              }
+              physics Physics {
+                mass 0.35
+              }
+            }
+          }
+          USE UPPER_LEG
+        ]
+        name "solid3"
+        boundingObject USE UPPER_LEG
+        physics Physics {
+          mass 0.5
+        }
+      }
+    }
+    Hinge2Joint {
+      jointParameters HingeJointParameters {
+        anchor -0.1375 0 0.135
+        minStop -0.5
+        maxStop 0.5
+      }
+      jointParameters2 JointParameters {
+        minStop -3.14
+        maxStop 3.14
+      }
+      device [
+        RotationalMotor {
+          name "rotational motor7"
+          acceleration 8
+          minPosition -0.5
+          maxPosition 0.5
+        }
+      ]
+      device2 [
+        RotationalMotor {
+          name "rotational motor8"
+          acceleration 8
+          minPosition -3.14
+          maxPosition 3.14
+        }
+      ]
+      endPoint Solid {
+        translation -0.1375 -0.075 -0.135
+        children [
+          DEF LEG_SLIDE SliderJoint {
+            jointParameters JointParameters {
+              axis 0 1 0
+              minStop -0.01
+              maxStop 0.13
+            }
+            device [
+              LinearMotor {
+                name "linear motor4"
+                acceleration 8
+                minPosition -0.01
+                maxPosition 0.13
+                maxForce 65
+              }
+            ]
+            endPoint Solid {
+              translation 0 -0.2 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0 0 1
+                  }
+                  geometry Capsule {
+                    height 0.15
+                    radius 0.04
+                  }
+                }
+              ]
+              name "solida"
+              boundingObject Capsule {
+                height 0.15
+                radius 0.04
+              }
+              physics Physics {
+                mass 0.35
+              }
+            }
+          }
+          USE UPPER_LEG
+        ]
+        name "solid4"
+        boundingObject USE UPPER_LEG
+        physics Physics {
+          mass 0.5
+        }
+      }
+    }
+  ]
+  boundingObject DEF BODY_SHAPE Shape {
+    appearance PBRAppearance {
+      baseColor 1 0 0
+    }
+  }
+  physics Physics {
+  }
+  controller "rouqhQuadPyCtrl"
+  selfCollision TRUE
+}

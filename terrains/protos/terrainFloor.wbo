@@ -1,0 +1,17 @@
+#VRML_OBJ R2019a utf8
+DEF terrainFloor Solid {
+  translation 0 1 0
+  children [
+    DEF floorShape Shape {
+      appearance PBRAppearance {
+        baseColor 0.7 0.8 0.2
+        roughness 1
+      }
+      geometry Box {
+        size 2 0.1 5
+      }
+    }
+  ]
+  name "solid(1)"
+  boundingObject USE floorShape
+}
