@@ -76,6 +76,8 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, epdir = EP
         print("Keyboard interrupt")
     finally:
         print("data", len(epoch_data), epoch_data)
+        for c in children:
+            c.kill()
 
     return epoch_data
 
