@@ -24,12 +24,11 @@ sim_data = run_simulation(n_steps)
 
 it = pickle.load(open(count_file, "rb"))
 pickle.dump(sim_data, open(data_dir+str(it), "wb"))
-logging.info(str(it)+" "+count_file)
+
 if it == 1:
     sv.simulationQuit(1)
 else:
     it -= 1
-    print("it", it)
     pickle.dump(it,open(count_file, "wb"))
     sv.simulationReset()
 
