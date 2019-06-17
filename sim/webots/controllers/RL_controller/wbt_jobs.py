@@ -59,7 +59,7 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
     for p in range(n_proc):
         with open(count_file + str(p) + '.p', 'wb') as file:
             pickle.dump(n_it, file)
-            children.append(subprocess.Popen(["webots --mode=fast --minimize --stderr --batch " + worldfiles[p]], shell=True))
+            children.append(subprocess.Popen(["webots --mode=fast --minimize --batch " + worldfiles[p]], shell=True))
 
     try:
         #constantly check process to terminate and retrieve simulation data if it did
@@ -78,7 +78,7 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
     except KeyboardInterrupt:
         print("Keyboard interrupt")
     finally:
-        print("data", len(epoch_data), np.array(epoch_data).shape, len(epoch_data[5])) #,epoch_data)
+        print("data", len(epoch_data), np.array(epoch_data).shape, epoch_data[5]) #,epoch_data)
         for c in children:
             try:
                 c.kill()
@@ -89,5 +89,5 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
 
 
 t = time.time()
-run_job(n_proc = 12, n_it = 16, n_steps= 500, build_files=True)
+run_job(n_proc = 12, n_it = 4, n_steps= 500, build_files=True)
 print("time:", time.time()-t)
