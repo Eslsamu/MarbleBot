@@ -10,6 +10,7 @@ calls section
 
 from controller import *
 import random
+import numpy as np
 
 superMan = Supervisor()
 
@@ -22,7 +23,7 @@ globalElevGridPos = ([float(-2.5), float(1.5), float(-2)])
 #robot = Robot() # Maybe not necessary because of the Supervisor?
 
 # ----------------- elevationGrid randomization -----------------------------------
-def randElevGrid(elevNode):
+def randElevGrid(elevNode, grad):
     # Get fields to randomize 
     """
     #elevNode = superMan.getFromDef("elevgridGeom")
@@ -52,7 +53,7 @@ def randElevGrid(elevNode):
     elevTransField.setSFVec3f(updatePos)
     
     # Ranges for random values for the x and z dimensions
-    dimRandRangeMin = 1
+    dimRandRangeMin = 3 # 1
     dimRandRangeMax = 5
     
     # Range for random heightfield heights
@@ -72,20 +73,22 @@ def randElevGrid(elevNode):
     
     # Random values for the x- and zSpacing
     # These spaceRange values have been made a little less extreme so the elevGrid isn't too extreme with resepct to spacing.
-    spaceRandRangeMax = 85 # Originally 100
-    spaceRandRangeMin = 50 # Originally 4
-    randSpaceX = (random.randint(spaceRandRangeMin, spaceRandRangeMax) / 100) * 2 # Multiply by 2 so the range should be around 0-2?
+    spaceRandRangeMax = 85 # Originally 100 # 85
+    spaceRandRangeMin = 50 # Originally 4 # 50
+    #randSpaceX = (random.randint(spaceRandRangeMin, spaceRandRangeMax) / 100) * 2 # Multiply by 2 so the range should be around 0-2?
+    randSpaceX=1
+    randSpaceZ=1
     global globalXSpace
     globalXSpace = randSpaceX
-    randSpaceZ = (random.randint(spaceRandRangeMin, spaceRandRangeMax) / 100) * 2
+    #randSpaceZ = (random.randint(spaceRandRangeMin, spaceRandRangeMax) / 100) * 2
     global globalZSpace
     globalZSpace = randSpaceZ
     print("randSpaceX: " + str(randSpaceX))
     print("randSpaceZ: " + str(randSpaceZ))
     
     # calculate length of elevHeightField
-    #elevHeightFieldLength = randX * randZ # Comment this out, if size of elevGrid is to remain the same
-    elevHeightFieldLength = elevXField.getSFInt32() * elevZField.getSFInt32() # Comment this out and use the one above if size of elevgrid is to be modified.
+    elevHeightFieldLength = randX * randZ # Comment this out, if size of elevGrid is to remain the same
+    #elevHeightFieldLength = elevXField.getSFInt32() * elevZField.getSFInt32() # Comment this out and use the one above if size of elevgrid is to be modified.
     
     # Generate elevHeightFieldLength amount of random height values
     heightStore = []
@@ -93,7 +96,54 @@ def randElevGrid(elevNode):
         randVal = random.randint(elevMin, elevMax) / 100 # / 100 so that the values are nice decimal numbers.
         heightStore.append(float(randVal)) # Cast to float because mehtod below requires floats.
     
-    print(heightStore)  
+    print(np.reshape(heightStore,(randX,randZ)))
+    print(len(heightStore))
+    # check that elevgrid gradient's not too steep 
+    for i in range(len(heightStore)):
+        if not (i%randX-1)==0 and i < (len(heightStore) - randX-1):
+            current = heightStore[i] # height value we're at now
+            next = heightStore[i + 1]
+            heightDifference = abs(current - next) / randSpaceX
+            if (heightDifference > grad):
+                slack = abs(heightDifference - grad) * randSpaceX
+                if (current > next):
+                    heightStore[i + 1] += slack
+                else:
+                    heightStore[i + 1] -= slack
+                
+            
+            below = heightStore[i + randX]
+            heightDifference = abs(current - below) / randSpaceZ
+            if (heightDifference > grad):
+                slack = abs(heightDifference - grad) *randSpaceZ
+                if (current > next):
+                    heightStore[i + randX] += slack
+                else:
+                    heightStore[i + randX] -= slack
+                
+        elif i%(randX-1)==0 and i < (len(heightStore) - randX-1):
+            current = heightStore[i]
+            below = heightStore[i + randX]
+            heightDifference = abs(current - below) / randSpaceZ
+            if (heightDifference > grad):
+                slack = abs(heightDifference - grad) * randSpaceZ
+                if current > below:
+                    heightStore[i + randX] += slack
+                else:
+                    heightStore[i + randX] -= slack
+        elif i%(randX-1) != 0 and (i > len(heightStore) - randX-1) and i < len(heightStore)-1:
+            current = heightStore[i] # height value we're at now
+            next = heightStore[i + 1]
+            heightDifference = abs(current - next) / randSpaceX
+            if (heightDifference > grad):
+                slack = abs(heightDifference - grad) * randSpaceX
+                if (current > next):
+                    heightStore[i + 1] += slack
+                else:
+                    heightStore[i + 1] -= slack
+    print(np.reshape(heightStore,(randX,randZ)))
+        
+              
     # Set the elevationGrid values to the new randommized values.
     #elevXField.setSFInt32(randX) # Comment out if size of elevgrid is to be unchanged.
     #elevZField.setSFInt32(randZ) # Comment out if size of elevgrid is to be unchanged.
@@ -140,7 +190,7 @@ def getStartEnd(platformNode, sizeX, sizeZ, elev): # gets start and end location
     return posList
     
 # TODO: different physical parameters for the obstacles
-def terRand(terX, terZ, obstCount, elev, elevRand, slantTerrainYeNo, slantParamz):
+def terRand(terX, terZ, obstCount, elev, elevRand, elevGrad, slantTerrainYeNo, slantParamz):
     """
     Input parameters
     -terX and terZ: terrain floor x and z dimensions.
@@ -226,7 +276,7 @@ def terRand(terX, terZ, obstCount, elev, elevRand, slantTerrainYeNo, slantParamz
         
         # If desired, randomize the elevGrid.
         if (elevRand):
-            randElevGrid(elevNode1)
+            randElevGrid(elevNode1, elevGrad)
         
         """
         # fit elevgrid to the terrainfloor size
@@ -317,11 +367,12 @@ terrainX = 15 # default 2, three times each default value for the main platform 
 terrainZ = 15 # defualt 5
 elevGridYesNo = True # if True, spawns elevgrid in the terRand function
 elevRandYesNo = True # If True, randomize the elevGrid in the terRand function
+elevGradient = 0.2 # Max. allowed gradient difference between adjacent vertices in an elevGrid
 slantTerrain = False # If true, then the terraingrid will be slanted by the angle and axes given below
 slantParams = [1, 0, 0, 0.1] # Parameters to slant terrain with. The first 3 values in this list must be normalized!!!
 #elevGridSlope
 
-terRand(terrainX, terrainZ, obstCount, elevGridYesNo, elevRandYesNo, slantTerrain, slantParams)
+terRand(terrainX, terrainZ, obstCount, elevGridYesNo, elevRandYesNo, elevGradient, slantTerrain, slantParams)
 
 #-----------------------------------------------------------------------------
 
@@ -338,3 +389,4 @@ while superMan.step(timestep) != -1:
     pass # used when a statement is required  syntactically, but you don't want any command or code to execute.
 
 # Enter here exit cleanup code.
+
