@@ -79,12 +79,12 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir =
         for c in children:
             c.kill()
     finally:
-        print("data", len(epoch_data), epoch_data)
+        print("data", len(epoch_data)) #,epoch_data)
 
 
     return epoch_data
 
 
 t = time.time()
-run_job(n_proc = 24, n_it = 8, n_steps= 500, build_files=True)
+run_job(n_proc = 16, n_it = 10, n_steps= 500, build_files=True)
 print("time:", time.time()-t)
