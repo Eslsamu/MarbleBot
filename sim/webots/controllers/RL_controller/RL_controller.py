@@ -1,7 +1,8 @@
 from controller import Supervisor
 import sys
 import pickle
-
+import logging
+logging.basicConfig(filename='count.log',level=logging.DEBUG)
 TIMESTEP = 32
 
 def run_simulation(steps = 100, t = TIMESTEP):
@@ -23,7 +24,7 @@ sim_data = run_simulation(n_steps)
 
 it = pickle.load(open(count_file, "rb"))
 pickle.dump(sim_data, open(data_dir+str(it), "wb"))
-
+logging.info(str(it))
 if it == 1:
     sv.simulationQuit(1)
 else:
