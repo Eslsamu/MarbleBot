@@ -31,7 +31,7 @@ def create_worldfile(id, args, src = INIT_FILE, dest = INSTANCE_DEST):
 loads the data of all timesteps that an episode gathered in an epoch
 """
 def load_sim_data(id, folder = EPOCH_DATA_FOLDER):
-    files = [f for f in listdir(folder) if str(id) in f]
+    files = [f for f in listdir(folder) if "/proc"+str(id)+"-" in f]
     sim_data = []
     for f in files:
         epi_data = pickle.load(open(folder+"/"+f, "rb"))
@@ -48,7 +48,7 @@ def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, epdir = EP
     if build_files:
         worldfiles = []
         for p in range(n_proc):
-            args = [n_steps, epdir+"/proc"+str(p), count_file + str(p) + '.p']
+            args = [n_steps, epdir+"/proc"+str(p)+"-", count_file + str(p) + '.p']
             f = create_worldfile(p, args)
             worldfiles.append(f)
     else:
