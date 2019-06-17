@@ -43,12 +43,12 @@ creates a specified amount of webots instances running for a given amount of tot
 @param build_files: true if new controller arguments have to be specified for instances 
 or new copies of world files have to be made
 """
-def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, epdir = EPOCH_DATA_FOLDER, count_file = COUNTER_DEST, instdir = INSTANCE_DEST):
+def run_job(n_proc = 2, n_it = 10, n_steps = 10, build_files = False, data_dir = EPOCH_DATA_FOLDER, count_file = COUNTER_DEST, instdir = INSTANCE_DEST):
 
     if build_files:
         worldfiles = []
         for p in range(n_proc):
-            args = [n_steps, epdir+"/proc"+str(p)+"-", count_file + str(p) + '.p']
+            args = [n_steps, data_dir+"/proc"+str(p)+"-", count_file + str(p) + '.p']
             f = create_worldfile(p, args)
             worldfiles.append(f)
     else:
