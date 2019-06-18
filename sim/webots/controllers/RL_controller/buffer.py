@@ -37,6 +37,7 @@ class Buffer():
 
     def store_epoch(self, epoch_data):
         #TODO
+        print(epoch_data)
 
     def finish_path(self, last_val=0):
         """

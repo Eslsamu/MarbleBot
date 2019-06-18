@@ -1,12 +1,15 @@
 #VRML_OBJ R2019a utf8
-DEF secondVersionWithMotors Robot {
+DEF QUAD1 Robot {
   translation 0.09999999805902843 0.2373351852452858 -1.9999999997428872
   rotation 0.13245558889851905 0.0003959832386026674 0.9911888620070451 8.117122753331102e-09
   children [
     DEF perfectTorso Solid {
-      translation -0.2575 0 -0.1
+      translation -0.2575 0.03 -0.1
       children [
-        DEF shoulderHip Hinge2Joint {
+        DEF IMU_Torso InertialUnit {
+          translation 0.2599999999999999 0.08 0.11999999999999998
+        }
+        DEF FR_Shoulder_Hip Hinge2Joint {
           jointParameters HingeJointParameters {
             position -4.0354430450721357e-07
             anchor 0.395 0.025 0.2
@@ -19,7 +22,7 @@ DEF secondVersionWithMotors Robot {
             maxStop 3.14
           }
           device [
-            DEF RotMot1 RotationalMotor {
+            DEF FR_Motor_Shoulder_Abduction RotationalMotor {
               name "rotational motor1"
               acceleration 1.5
               maxVelocity 3
@@ -28,7 +31,7 @@ DEF secondVersionWithMotors Robot {
             }
           ]
           device2 [
-            DEF RotMot2 RotationalMotor {
+            DEF FR_Motor_Shoulder_Rotation RotationalMotor {
               name "rotational motor2"
               acceleration 1.5
               maxVelocity 3
@@ -69,7 +72,7 @@ DEF secondVersionWithMotors Robot {
                           maxStop 0.085
                         }
                         device [
-                          DEF LinMot1 LinearMotor {
+                          DEF FR_Motor_Knee LinearMotor {
                             name "linear motor1"
                             acceleration 0.75
                             maxVelocity 0.2
@@ -91,7 +94,17 @@ DEF secondVersionWithMotors Robot {
                               endPoint Solid {
                                 translation 0 -0.07822802568853175 0
                                 children [
-                                  DEF foot Shape {
+                                  DEF FR_Force TouchSensor {
+                                    translation 0 -0.011 0
+                                    rotation 1 0 0 1.5707963220000003
+                                    boundingObject Sphere {
+                                      radius 0.015
+                                    }
+                                    physics Physics {
+                                    }
+                                    type "force-3d"
+                                  }
+                                  DEF FR_Foot Shape {
                                     appearance PBRAppearance {
                                       baseColor 1 0.2 0.1
                                     }
@@ -101,13 +114,11 @@ DEF secondVersionWithMotors Robot {
                                     }
                                   }
                                 ]
-                                boundingObject USE foot
+                                boundingObject USE FR_Foot
                                 physics Physics {
                                   density -1
                                   mass 0.1
                                 }
-                                linearVelocity -3.152107250283775e-11 3.5693104432965582e-06 -3.7152061841717878e-09
-                                angularVelocity -9.866369486972398e-10 -2.1243678593117875e-13 1.251605106986045e-09
                               }
                             }
                             DEF lowerandupperlegconnector Shape {
@@ -123,8 +134,6 @@ DEF secondVersionWithMotors Robot {
                           physics Physics {
                             mass 0.15
                           }
-                          linearVelocity -1.2956500544222743e-10 3.2966446527275137e-06 -2.6175662765668606e-09
-                          angularVelocity -1.0618826421772296e-09 -2.1295633237066053e-13 1.2515881902862769e-09
                         }
                       }
                     ]
@@ -141,11 +150,9 @@ DEF secondVersionWithMotors Robot {
             physics Physics {
               mass 0.03
             }
-            linearVelocity -2.671730534657553e-10 3.294738849679526e-06 -1.511380966272948e-09
-            angularVelocity -1.3972273294537455e-09 -2.0859067017996688e-13 1.2515451491455658e-09
           }
         }
-        DEF shoulderHip2 Hinge2Joint {
+        DEF BR_Shoulder_Hip Hinge2Joint {
           jointParameters HingeJointParameters {
             position -4.0354436621567405e-07
             anchor 0.12 0.025 0.2
@@ -158,7 +165,7 @@ DEF secondVersionWithMotors Robot {
             maxStop 3.14
           }
           device [
-            RotationalMotor {
+            DEF BR_Motor_Shoulder_Abduction RotationalMotor {
               name "rotational motor3"
               acceleration 1.5
               maxVelocity 3
@@ -167,7 +174,7 @@ DEF secondVersionWithMotors Robot {
             }
           ]
           device2 [
-            RotationalMotor {
+            DEF BR_Motor_Shoulder_Rotation RotationalMotor {
               name "rotational motor4"
               acceleration 1.5
               maxVelocity 3
@@ -208,7 +215,7 @@ DEF secondVersionWithMotors Robot {
                           maxStop 0.085
                         }
                         device [
-                          LinearMotor {
+                          DEF BR_Motor_Knee LinearMotor {
                             name "linear motor4"
                             acceleration 0.75
                             maxVelocity 0.2
@@ -230,7 +237,17 @@ DEF secondVersionWithMotors Robot {
                               endPoint Solid {
                                 translation 0 -0.07822802418197673 0
                                 children [
-                                  DEF foot Shape {
+                                  DEF BR_Force TouchSensor {
+                                    translation 0 -0.011 0
+                                    rotation 1 0 0 1.5707963220000003
+                                    boundingObject Sphere {
+                                      radius 0.015
+                                    }
+                                    physics Physics {
+                                    }
+                                    type "force-3d"
+                                  }
+                                  DEF BR_Foot Shape {
                                     appearance PBRAppearance {
                                       baseColor 1 0.2 0.1
                                     }
@@ -240,13 +257,11 @@ DEF secondVersionWithMotors Robot {
                                     }
                                   }
                                 ]
-                                boundingObject USE foot
+                                boundingObject USE BR_Foot
                                 physics Physics {
                                   density -1
                                   mass 0.1
                                 }
-                                linearVelocity -3.152050192193202e-11 3.569088246919705e-06 -3.715264013295222e-09
-                                angularVelocity -9.865571181264938e-10 -2.1176795221334599e-13 1.2516050523387854e-09
                               }
                             }
                             DEF lowerandupperlegconnector Shape {
@@ -263,8 +278,6 @@ DEF secondVersionWithMotors Robot {
                             density -1
                             mass 0.15
                           }
-                          linearVelocity -1.2956461927216887e-10 3.2963038403673993e-06 -2.6176249126407117e-09
-                          angularVelocity -1.061701363524339e-09 -2.132037108556787e-13 1.2515900927550582e-09
                         }
                       }
                     ]
@@ -283,11 +296,9 @@ DEF secondVersionWithMotors Robot {
               density -1
               mass 0.03
             }
-            linearVelocity -2.6717287662872577e-10 3.294396903963306e-06 -1.5114333943208975e-09
-            angularVelocity -1.3971380114821695e-09 -2.0910809586770678e-13 1.2515450820074614e-09
           }
         }
-        DEF shoulderHip3 Hinge2Joint {
+        DEF FL_Shoulder_Hip Hinge2Joint {
           jointParameters HingeJointParameters {
             position 4.0354432411549764e-07
             anchor 0.395 0.025 0
@@ -300,7 +311,7 @@ DEF secondVersionWithMotors Robot {
             maxStop 3.14
           }
           device [
-            RotationalMotor {
+            DEF FL_Motor_Shoulder_Abduction RotationalMotor {
               name "rotational motor5"
               acceleration 1.5
               maxVelocity 3
@@ -309,7 +320,7 @@ DEF secondVersionWithMotors Robot {
             }
           ]
           device2 [
-            RotationalMotor {
+            DEF FL_Motor_Shoulder_Rotation RotationalMotor {
               name "rotational motor6"
               acceleration 1.5
               maxVelocity 3
@@ -350,7 +361,7 @@ DEF secondVersionWithMotors Robot {
                           maxStop 0.085
                         }
                         device [
-                          LinearMotor {
+                          DEF FL_Motor_Knee LinearMotor {
                             name "linear motor2"
                             acceleration 0.75
                             maxVelocity 0.2
@@ -372,7 +383,17 @@ DEF secondVersionWithMotors Robot {
                               endPoint Solid {
                                 translation 0 -0.07822802584807197 0
                                 children [
-                                  DEF foot Shape {
+                                  DEF FL_Force TouchSensor {
+                                    translation 0 -0.011 0
+                                    rotation 1 0 0 1.5707963220000003
+                                    boundingObject Sphere {
+                                      radius 0.015
+                                    }
+                                    physics Physics {
+                                    }
+                                    type "force-3d"
+                                  }
+                                  DEF FL_Foot Shape {
                                     appearance PBRAppearance {
                                       baseColor 1 0.2 0.1
                                     }
@@ -382,13 +403,11 @@ DEF secondVersionWithMotors Robot {
                                     }
                                   }
                                 ]
-                                boundingObject USE foot
+                                boundingObject USE FL_Foot
                                 physics Physics {
                                   density -1
                                   mass 0.1
                                 }
-                                linearVelocity -3.147657630579603e-11 3.569250871393592e-06 3.6377797523606814e-09
-                                angularVelocity -2.11769492384072e-09 -2.1256975462230453e-13 1.2516098606703502e-09
                               }
                             }
                             DEF lowerandupperlegconnector Shape {
@@ -405,8 +424,6 @@ DEF secondVersionWithMotors Robot {
                             density -1
                             mass 0.15
                           }
-                          linearVelocity -1.2951925399058067e-10 3.2962920217815178e-06 2.2972346169246565e-09
-                          angularVelocity -2.0423581593416007e-09 -2.1275324640304634e-13 1.2515906574042417e-09
                         }
                       }
                     ]
@@ -428,8 +445,6 @@ DEF secondVersionWithMotors Robot {
                 0 0 0
               ]
             }
-            linearVelocity -2.6711656124835015e-10 3.2943176827273704e-06 8.503826390105454e-10
-            angularVelocity -1.7068575835683213e-09 -2.153697946071859e-13 1.2515474941292021e-09
           }
         }
         DEF BetterTorso Shape {
@@ -458,7 +473,7 @@ DEF secondVersionWithMotors Robot {
             ]
           }
         }
-        DEF shoulderHip4 Hinge2Joint {
+        DEF BL_Shoulder_Hip Hinge2Joint {
           jointParameters HingeJointParameters {
             position 4.035443835749079e-07
             anchor 0.12 0.025 0
@@ -471,7 +486,7 @@ DEF secondVersionWithMotors Robot {
             maxStop 3.14
           }
           device [
-            RotationalMotor {
+            DEF BL_Motor_Shoulder_Abduction RotationalMotor {
               name "rotational motor7"
               acceleration 1.5
               maxVelocity 3
@@ -480,7 +495,7 @@ DEF secondVersionWithMotors Robot {
             }
           ]
           device2 [
-            RotationalMotor {
+            DEF BL_Motor_Shoulder_Rotation RotationalMotor {
               name "rotational motor8"
               acceleration 1.5
               maxVelocity 3
@@ -521,7 +536,7 @@ DEF secondVersionWithMotors Robot {
                           maxStop 0.085
                         }
                         device [
-                          LinearMotor {
+                          DEF BL_Motor_Knee LinearMotor {
                             name "linear motor3"
                             acceleration 0.75
                             maxVelocity 0.2
@@ -543,7 +558,17 @@ DEF secondVersionWithMotors Robot {
                               endPoint Solid {
                                 translation 0 -0.07822802434151573 0
                                 children [
-                                  DEF foot Shape {
+                                  DEF BL_Force TouchSensor {
+                                    translation 0 -0.011 0
+                                    rotation 1 0 0 1.5707963220000003
+                                    boundingObject Sphere {
+                                      radius 0.015
+                                    }
+                                    physics Physics {
+                                    }
+                                    type "force-3d"
+                                  }
+                                  DEF BL_Foot Shape {
                                     appearance PBRAppearance {
                                       baseColor 1 0.2 0.1
                                     }
@@ -553,13 +578,11 @@ DEF secondVersionWithMotors Robot {
                                     }
                                   }
                                 ]
-                                boundingObject USE foot
+                                boundingObject USE BL_Foot
                                 physics Physics {
                                   density -1
                                   mass 0.1
                                 }
-                                linearVelocity -3.147652732587657e-11 3.5690286886591593e-06 3.637722843057023e-09
-                                angularVelocity -2.1174850532361555e-09 -2.1323660735849797e-13 1.2516070225647491e-09
                               }
                             }
                             DEF lowerandupperlegconnector Shape {
@@ -576,8 +599,6 @@ DEF secondVersionWithMotors Robot {
                             density -1
                             mass 0.15
                           }
-                          linearVelocity -1.2951913550273448e-10 3.2959511961223495e-06 2.297185441750658e-09
-                          angularVelocity -2.0422417838184103e-09 -2.1404015408911028e-13 1.2515923553602819e-09
                         }
                       }
                     ]
@@ -595,8 +616,6 @@ DEF secondVersionWithMotors Robot {
               density -1
               mass 0.03
             }
-            linearVelocity -2.671165002334819e-10 3.293975731860864e-06 8.503358521895265e-10
-            angularVelocity -1.7068678331713962e-09 -2.1702195523982258e-13 1.2515471693483404e-09
           }
         }
       ]

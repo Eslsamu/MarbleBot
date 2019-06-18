@@ -1,12 +1,11 @@
 import subprocess
 import pickle
 from os import listdir
-import time
 import logging
 import numpy as np
 logging.basicConfig(format='%(asctime)s %(message)s',filename='server.log',level=logging.DEBUG)
 
-INIT_FILE = "../../worlds/speed_test.wbt"
+INIT_FILE = "../../worlds/RL_world.wbt"
 INSTANCE_DEST = "../../instances/world"
 COUNTER_DEST = "counter/c"
 EPOCH_DATA_FOLDER = "epoch_data"
@@ -65,7 +64,7 @@ def run_job(n_proc, total_steps, max_ep_steps, model_file, build_files = False, 
                 pickle.dump(steps_per_process+extra_steps, file)
             else:
                 pickle.dump(steps_per_process, file)
-            children.append(subprocess.Popen(["webots --mode=fast --minimize --batch " + worldfiles[p]], shell=True))
+            children.append(subprocess.Popen(["webots --stdout --stderr --mode=fast --minimize --batch " + worldfiles[p]], shell=True))
 
     try:
         #constantly check process to terminate and retrieve simulation data if it did
@@ -93,7 +92,3 @@ def run_job(n_proc, total_steps, max_ep_steps, model_file, build_files = False, 
 
     return epoch_data
 
-
-t = time.time()
-run_job(n_proc = 10, n_it = 10, n_steps= 500, build_files=True)
-print("time:", time.time()-t)

@@ -1,0 +1,19 @@
+{
+"motors":     [
+    "rotational motor1",
+    "rotational motor2",
+    "rotational motor3",
+    "rotational motor4",
+    "rotational motor5",
+    "rotational motor6",
+    "linear motor1",
+    "linear motor2",
+    "linear motor3",
+    "linear motor4"
+            ],
+"sensors":  [
+            "FR_Force",
+            "FL_Force",
+            "BR_Force",
+            "BL_Force"]
+}

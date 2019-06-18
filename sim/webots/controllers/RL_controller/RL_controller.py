@@ -1,10 +1,9 @@
+from controller import Supervisor
 from tensorflow import Session, Graph, saved_model
 import sys
-from webots.controllers.robot_environment import Robot_Environment
-from controller import Supervisor
+from robot_environment import Robot_Environment
 import pickle
 import logging
-logging.basicConfig(filename='ppo.log',level=logging.DEBUG)
 
 
 
@@ -12,16 +11,13 @@ logging.basicConfig(filename='ppo.log',level=logging.DEBUG)
 run one episode until it terminates, the epoch is over or it reached the max time steps
 """
 def run_episode(env, sess, total_steps, max_ep_steps):
-    #initialize robot
-    env.init()
-
     #episode data
     ep_obs = []
     ep_a = []
     ep_vals = []
     ep_rews = []
     ep_logp =[]
-    obs, rew, done, ep_ret, ep_len = env.get_obs(), 0, False, 0, 0
+    obs, rew, done, ep_ret, ep_len = env.get_sensor_data(), 0, False, 0, 0
 
     #cut of episode if total process steps are reached
     if total_steps < max_ep_steps:
@@ -32,7 +28,10 @@ def run_episode(env, sess, total_steps, max_ep_steps):
 
     #episode loop
     for s in range(n_steps):
-        action, val, logp = sess.run(["pi", "val"], feed_dict={"obs": obs.reshape(1, -1)})
+        logging.warning("xxxxxxx")
+        for op in sess.graph.get_operations():
+            logging.warning(op)
+        action, val, logp = sess.run(["pi", "val"], feed_dict={"obs:0": obs.reshape(1, -1)})
         obs, rew, done = env.step(action)
 
         #store timestep data
@@ -48,11 +47,13 @@ def run_episode(env, sess, total_steps, max_ep_steps):
         if done:
             break
 
-    last_val = rew if done else sess.run("val", feed_dict={"obs": obs.reshape(1, -1)})
+    last_val = rew if done else sess.run("val", feed_dict={"obs:0": obs.reshape(1, -1)})
 
     return {"obs": ep_obs, "a": ep_a,"val":ep_vals, "rew": ep_rews, "logp": ep_logp,
             "ret": ep_ret,"len": ep_len, "last_val":last_val}
 
+#inits webots api
+sv = Supervisor()
 
 #read controller arguments
 max_ep_steps = int(sys.argv[1])
@@ -61,14 +62,14 @@ count_file = sys.argv[3]
 model_dir = sys.argv[4]
 
 #load the saved tensorflow model as session
-with Session(graph=Graph()) as sess:
-  saved_model.loader.load(sess, [saved_model.tag_constants.TRAINING], model_dir)
+sess = Session(graph=Graph())
+saved_model.loader.load(sess, [saved_model.tag_constants.SERVING], model_dir)
 
 #get steps to go for this epoch
 steps_to_go = pickle.load(open(count_file, "rb"))
 
 #create robot environment
-env = Robot_Environment()
+env = Robot_Environment(supervisor = sv)
 
 #run episode and collect episode data
 ep_data = run_episode(env, sess, steps_to_go, max_ep_steps)
@@ -77,7 +78,6 @@ ep_data = run_episode(env, sess, steps_to_go, max_ep_steps)
 pickle.dump(ep_data, open(data_dir+str(steps_to_go), "wb"))
 
 #reset simulation or quit if epoch is over
-sv = Supervisor()
 if steps_to_go == 0:
     sv.simulationQuit(1)
 else:

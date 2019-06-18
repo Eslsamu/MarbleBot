@@ -1,14 +1,14 @@
 import time
 import logging
-logging.basicConfig(filename='ppo.log',level=logging.DEBUG, format='%(asctime)s %(message)s')
+logging.basicConfig(filename='ppo.log',format='%(asctime)s %(message)s')
 import numpy as np
 import tensorflow as tf
-from webots.controllers.RL_controller.rl_policy import actor_critic
-from webots.controllers.RL_controller.buffer import Buffer
-from webots.controllers.RL_controller.wbt_jobs import run_job
+from rl_policy import actor_critic
+from buffer import Buffer
+from wbt_jobs import run_job
 
 
-SAVE_MODEL_PATH = "webots/controllers/RL_controller/saved_model"
+SAVE_MODEL_PATH = "saved_model"
 
 
 def get_vars(scope=''):
@@ -20,22 +20,28 @@ def count_vars(scope=''):
     return sum([np.prod(var.shape.as_list()) for var in v])
 
 def save_model(sess, inputs, outputs, export_dir = SAVE_MODEL_PATH):
-    tf.simple_save(
-        sess,
-        export_dir,
-        inputs,
-        outputs
-    )
+    #needs to find a nonexistant directory path
+    for i in range(1000):
+        try:
+            tf.saved_model.simple_save(
+                session=sess,
+                export_dir=export_dir,
+                inputs=inputs,
+                outputs=outputs
+            )
+            break
+        except AssertionError:
+            export_dir = SAVE_MODEL_PATH + str(i)
 
 def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1e-3,
             gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2,
-            hidden_sizes = (64,64), act_dim=None, obs_dim= None, n_proc = 16):
+            hidden_sizes = (64,64), act_dim=None, obs_dim= None, n_proc = 2, model_path = SAVE_MODEL_PATH):
 
     if not(act_dim and obs_dim):
             logging.warning("Missing action or obs dimension")
 
     #tensorflow graph inputs
-    obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim))
+    obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim), name="obs")
     act_ph = tf.placeholder(dtype = tf.float32, shape=(None,act_dim))
     adv_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     ret_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
@@ -106,10 +112,13 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
     #experience and training loop
     for epoch in range(epochs):
+        # save model
+        save_model(sess, inputs = {"obs":obs_ph},outputs={"pi":pi, "val":val},export_dir=model_path)
+
         #build world files only for first epoch
         if epoch == 0:
             first = True
-        epoch_data = run_job(n_proc, epoch_steps, build_files=first)
+        epoch_data = run_job(n_proc, epoch_steps, max_ep_steps= max_ep_len,model_file=model_path,build_files=first)
 
         #save epoch data
         buf.store_epoch(epoch_data)
@@ -124,8 +133,14 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #update policy
         update()
 
-        #save model
-        save_model()
 
+import json
+file = "devices.json"
+with open(file) as f:
+    devices = json.load(f)
+    sensor_names = devices["sensors"]
+    motor_names = devices["motors"]
 
-
+obs_dim = len(sensor_names)
+act_dim = len(motor_names)
+run_ppo(act_dim = act_dim, obs_dim = obs_dim)
