@@ -19,19 +19,24 @@ class Robot_Environment():
 
         self.init_sensors(sensor_names)
         self.init_motors(motor_names)
+        self.trans_field = self.sv.getFromDef("robot").getField("translation")
 
     def init_sensors(self, sensor_names):
         self.sensors = []
         for n in sensor_names:
             #TODO IMU
-            logging.warning(n + " "+ str(type(n)))
-            self.sensors.append(self.sv.getTouchSensor(n))
+            s = self.sv.getTouchSensor(n)
+            s.enable(TIMESTEP)
+            self.sensors.append(s)
 
     def init_motors(self, motor_names):
         # motors
         self.motors = []
         for n in motor_names:
-            self.motors.append(self.sv.getMotor(n))
+            m = self.sv.getMotor(n)
+            m.setPosition(float(np.inf))
+            self.motors.append(m)
+
 
         #TODO different maxvel for linear and rotational motor
         self.maxVel = self.motors[0].getMaxVelocity()
@@ -61,8 +66,7 @@ class Robot_Environment():
 
     def actuate_motors(self, vel):
         for m in range(len(self.motors)):
-            self.sv.motors[m].setVelocity(vel[m])
-
+            self.motors[m].setVelocity(float(vel[m]))
     #TODO
     def calculate_energy(self):
         return 0
@@ -79,12 +83,12 @@ class Robot_Environment():
 
     def step(self,action, t=TIMESTEP):
         self.actuate_motors(action)
-        pos0 = self.sv.trans_field.getSFVec3f()
-        self.step(t)
-        pos1 = self.sv.self.trans_field.getSFVec3f()
+        pos0 = self.trans_field.getSFVec3f()
+        self.sv.step(t)
+        pos1 = self.trans_field.getSFVec3f()
 
         rew = self.calculate_reward(pos0, pos1)
         obs = self.get_sensor_data()
         done = self.check_termination()
 
-        return rew, obs, done
+        return obs,rew, done

@@ -24,7 +24,7 @@ def policy(state, action, hidden_sizes):
     std = tf.exp(log_std)
 
     #samples actions from policy given a state
-    pi = mean + tf.random_normal(tf.shape(mean))*std
+    pi = tf.add(mean,tf.random_normal(tf.shape(mean))*std)
 
     #gives log probability of taking 'actions' according to the policy in states
     logp = log_likelihood(action, mean, log_std)
@@ -36,11 +36,11 @@ def policy(state, action, hidden_sizes):
 def actor_critic(state, action, hidden_sizes=(64,64)):
 
     #policy 
-    with tf.variable_scope('pi'):
+    with tf.name_scope('pi'):
         pi, logp, logp_pi = policy(state, action, hidden_sizes)
 
     #state value estimation network
-    with tf.variable_scope('v'):
+    with tf.variable_scope('val'):
             val = tf.squeeze(nn(state, list(hidden_sizes)+[1]), axis = 1)
 
     return pi, logp, logp_pi, val

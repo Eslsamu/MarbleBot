@@ -36,8 +36,19 @@ class Buffer():
         self.ptr += 1
 
     def store_epoch(self, epoch_data):
-        #TODO
-        print(epoch_data)
+        for proc in epoch_data:
+            for epi in proc:
+                obs = epi["obs"]
+                a = epi["a"]
+                val = epi["val"]
+                rew = epi["rew"]
+                logp = epi["logp"]
+                ep_len = epi["ep_len"]
+                last_val = epi["last_val"]
+                print("obs", obs)
+                for t in range(ep_len):
+                    self.store(obs[t], a[t], rew[t], val[t], logp[t])
+                self.finish_path(last_val)
 
     def finish_path(self, last_val=0):
         """

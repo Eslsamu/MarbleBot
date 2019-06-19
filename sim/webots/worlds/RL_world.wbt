@@ -11,7 +11,7 @@ Background {
     0.8274509803921568 0.8431372549019608 0.8117647058823529
   ]
 }
-DEF QUAD Robot {
+DEF robot Robot {
   translation 0.09999999805902843 0.2373351852452858 -1.9999999997428872
   rotation 0.13245558889851905 0.0003959832386026674 0.9911888620070451 8.117122753331102e-09
   children [
@@ -642,7 +642,7 @@ DEF QUAD Robot {
       }
     }
   ]
-  name "robot(2)"
+  name "robot"
   physics Physics {
   }
   controller "RL_controller"

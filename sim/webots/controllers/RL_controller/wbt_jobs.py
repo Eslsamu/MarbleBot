@@ -3,11 +3,14 @@ import pickle
 from os import listdir
 import logging
 import numpy as np
+from shutil import rmtree
+import os.path as osp
+from os import makedirs
 logging.basicConfig(format='%(asctime)s %(message)s',filename='server.log',level=logging.DEBUG)
 
 INIT_FILE = "../../worlds/RL_world.wbt"
 INSTANCE_DEST = "../../instances/world"
-COUNTER_DEST = "counter/c"
+COUNTER_DEST = "counter"
 EPOCH_DATA_FOLDER = "epoch_data"
 
 """
@@ -43,14 +46,24 @@ creates a specified amount of webots instances running for a given amount of tot
 @param build_files: true if new controller arguments have to be specified for instances 
 or new copies of world files have to be made
 """
-def run_job(n_proc, total_steps, max_ep_steps, model_file, build_files = False, data_dir = EPOCH_DATA_FOLDER, count_file = COUNTER_DEST, instdir = INSTANCE_DEST):
-    steps_per_process = int(n_proc/total_steps)
-    extra_steps = n_proc % total_steps
+def run_job(n_proc, total_steps, max_ep_steps, model_path, build_files = False, data_dir = EPOCH_DATA_FOLDER, count_dir = COUNTER_DEST, instdir = INSTANCE_DEST):
+    steps_per_process = int(total_steps/n_proc)
+    extra_steps = total_steps % n_proc
+
+    # delete epoch data and counter directory if exists
+    if osp.isdir(data_dir):
+        rmtree(data_dir)
+    if osp.isdir(count_dir):
+        rmtree(count_dir)
+
+    #creates these directories
+    makedirs(data_dir)
+    makedirs(count_dir)
 
     if build_files:
         worldfiles = []
         for p in range(n_proc):
-            args = [max_ep_steps, data_dir+"/proc"+str(p)+"-", count_file + str(p) + '.p', model_file]
+            args = [max_ep_steps, data_dir+ "/proc" + str(p) + "-", count_dir  + "/c" + str(p) + '.p', model_path]
             f = create_worldfile(p, args)
             worldfiles.append(f)
     else:
@@ -58,7 +71,7 @@ def run_job(n_proc, total_steps, max_ep_steps, model_file, build_files = False, 
 
     children = []
     for p in range(n_proc):
-        with open(count_file + str(p) + '.p', 'wb') as file:
+        with open(count_dir + "/c" + str(p) + '.p', 'wb') as file:
             #modulo steps for first process
             if p == 0 :
                 pickle.dump(steps_per_process+extra_steps, file)
@@ -77,13 +90,12 @@ def run_job(n_proc, total_steps, max_ep_steps, model_file, build_files = False, 
                     done = c.poll()
                     if done:
                         print(i, "done")
-                        proc_data = (load_proc_data(id=i), i)
+                        proc_data = load_proc_data(id=i)
                         epoch_data.append(proc_data)
                         fin.append(i)
     except KeyboardInterrupt:
         print("Keyboard interrupt")
     finally:
-        print("data", len(epoch_data), np.array(epoch_data).shape) #,epoch_data)
         for c in children:
             try:
                 c.kill()
