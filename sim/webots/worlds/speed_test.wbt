@@ -14,7 +14,8 @@ Background {
   ]
 }
 DEF sv Robot {
-  controller "tcpip_client"
+  controller "RL_controller"
+  controllerArgs "None"
   supervisor TRUE
 }
 DEF robot Robot {
