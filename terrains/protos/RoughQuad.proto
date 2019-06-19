@@ -1,0 +1,106 @@
+#VRML_SIM R2019a utf8
+# tags: static
+# A rough model of a SLIP-quadruped
+
+PROTO RoughQuad [
+  field SFVec3f    translation     0 0 0      # Is `Transform.translation`.
+  field SFRotation rotation        0 1 0 0    # Is `Transform.rotation`.
+  field SFString   name            "RoughQuad" # Is `Solid.name`.
+  field SFString   controller      "pyRoughQuadCtrl" # Is `Robot.controller`.
+  field SFString   controllerArgs  ""         # Is `Robot.controllerArgs`.
+  field SFString   customData      ""         # Is `Robot.customData`.
+  field SFBool     supervisor      FALSE      # Is `Robot.supervisor`.
+  field SFBool     synchronization TRUE       # Is `Robot.synchronization`.
+  field MFNode     extensionSlot   []         # Extends the robot with new nodes in the extension slot.
+]
+{
+  Robot { # "Robots and device classes are subclasses of the solid class"
+    translation IS translation
+    rotation IS rotation
+    controller IS controller
+    controllerArgs IS controllerArgs
+    customData IS customData
+    supervisor IS supervisor
+    synchronization IS synchronization
+    name IS name
+    children [
+	Group {
+	  children IS extensionSlot
+        }
+        #DEF BODY_SHAPE Shape { # Intuitively I would say this should be a Solid rather than a Shape
+          #appearance DEF BODY_APPEARANCE PBRAppearance {
+            #metalness 0
+	    #roughness 1
+          #}
+	  #geometry Box {
+	    #size 0.5 0.1 0.2
+	  #}
+	#}
+        DEF BODY_SOLID Solid {
+          name "namea"
+          model "mainBody"
+          description "desc."
+          
+        }
+        DEF HIP Hinge2Joint { # For front left leg
+	  jointParameters2 JointParameters {
+	    position 0 # Not sure about this	
+            axis 0 0 1 # I think it should swing across the z-axis, not sure :(
+            #anchor 0.23 0 0.1
+	  }
+	  device2 [
+	    RotationalMotor {        # Not sure about any of these values.
+	      name "frontLeftMotor"
+	      maxVelocity 100
+	      minPosition -1
+              maxPosition 1
+	      maxTorque 100
+            }
+	  ]
+	  position2 0
+          endPoint DEF UPPER_LEG Solid {
+            translation	0.23 0 0.1
+	    children [
+	      Transform {
+		children [
+		  Shape {
+		    appearance USE BODY_APPEARANCE
+		    geometry Capsule {
+		      bottom TRUE
+		      height 0.15
+		      radius 0.04
+		      side TRUE
+		      top TRUE
+		      subdivision 12
+		    }
+      		  }
+		]
+	      }
+	    ]
+           boundingObject DEF UPPER_LEG_BOUNDER Shape {
+             appearance USE BODY_APPEARANCE
+             geometry Capsule {
+              bottom TRUE
+              height 0.15
+              radius 0.04
+              side TRUE
+              top TRUE
+              subdivision 12
+             }
+           }
+          physics Physics {
+          }
+	  } 
+	}
+     ]
+    physics Physics {
+    } 	      
+   }	     	  
+ }	     
+
+
+
+
+
+
+	

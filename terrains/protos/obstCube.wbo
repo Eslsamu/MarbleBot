@@ -1,0 +1,18 @@
+#VRML_OBJ R2019a utf8
+DEF obstCube Solid {
+  translation 0 0.07000000000000002 0
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.2 1 0.5
+      }
+      geometry DEF bGeom1 Box {
+        size 0.1 0.1 0.1
+      }
+    }
+  ]
+  boundingObject USE bGeom1
+  physics Physics {
+    mass 0.8
+  }
+}
