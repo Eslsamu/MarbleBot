@@ -5,7 +5,7 @@
     "linear motor3",
     "linear motor4"
             ],
-"sensors":  [
+"force_sensors":  [
             "FR_Force",
             "FL_Force",
             "BR_Force",
@@ -16,5 +16,11 @@
     "rotational motor3",
     "rotational motor4",
     "rotational motor5",
-    "rotational motor6"]
+    "rotational motor6"],
+"IMUs": [
+    "IMU_Torso"
+    ],
+"collision_detector": [
+    "collision_detector"
+    ]
 }

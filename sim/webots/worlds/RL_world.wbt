@@ -3,8 +3,8 @@ WorldInfo {
   FPS 30
 }
 Viewpoint {
-  orientation 0.007452385372576603 0.9823293396958799 0.18701211277592533 3.2198438510583376
-  position 0.12273199041182317 0.5210339498973645 -2.872100306627976
+  orientation -0.13516947724565426 -0.9825419132603362 -0.12783036066543155 1.5325925992615144
+  position -1.3939312042012368 0.7332702772846011 -1.894287225120565
 }
 Background {
   skyColor [
@@ -20,6 +20,7 @@ DEF robot Robot {
       children [
         DEF IMU_Torso InertialUnit {
           translation 0.2599999999999999 0.08 0.11999999999999998
+          name "IMU_Torso"
         }
         DEF FR_Shoulder_Hip Hinge2Joint {
           jointParameters HingeJointParameters {
@@ -53,7 +54,7 @@ DEF robot Robot {
           ]
           endPoint Solid {
             translation 0.395 0.02500000504430381 0.212499999999999
-            rotation -3.7846356268733025e-14 0.9999999999999797 -2.0177215225360522e-07 3.141592644
+            rotation -4.7936050553485126e-14 0.9999999999999797 -2.0177215225360517e-07 3.141592644
             children [
               DEF upperlegbodyconnector Shape {
                 appearance PBRAppearance {
@@ -107,9 +108,9 @@ DEF robot Robot {
                                 translation 0 -0.07822802568853175 0
                                 children [
                                   DEF FR_Force TouchSensor {
-                                    name "FR_Force"
                                     translation 0 -0.011 0
                                     rotation 1 0 0 1.5707963220000003
+                                    name "FR_Force"
                                     boundingObject Sphere {
                                       radius 0.015
                                     }
@@ -197,7 +198,7 @@ DEF robot Robot {
           ]
           endPoint Solid {
             translation 0.12000000057538757 0.02500000504430458 0.212499999999999
-            rotation -4.700846725273253e-14 0.9999999999999797 -2.0177218310783544e-07 3.141592644
+            rotation -6.623343088793944e-14 0.9999999999999797 -2.0177218310783533e-07 3.141592644
             children [
               DEF upperlegbodyconnector Shape {
                 appearance PBRAppearance {
@@ -251,9 +252,9 @@ DEF robot Robot {
                                 translation 0 -0.07822802418197673 0
                                 children [
                                   DEF BR_Force TouchSensor {
-                                    name "BR_Force"
                                     translation 0 -0.011 0
                                     rotation 1 0 0 1.5707963220000003
+                                    name "BR_Force"
                                     boundingObject Sphere {
                                       radius 0.015
                                     }
@@ -343,7 +344,7 @@ DEF robot Robot {
             }
           ]
           endPoint Solid {
-            translation 0.395 0.025000005044304052 -0.012499999999998984
+            translation 0.395 0.025000005044304052 -0.012499999999998988
             rotation 0.9999999999999838 -3.6199167349814756e-14 1.794061528639108e-07 4.031583445807906e-07
             children [
               DEF upperlegbodyconnector Shape {
@@ -398,9 +399,9 @@ DEF robot Robot {
                                 translation 0 -0.07822802584807197 0
                                 children [
                                   DEF FL_Force TouchSensor {
-                                    name "FL_Force"
                                     translation 0 -0.011 0
                                     rotation 1 0 0 1.5707963220000003
+                                    name "FL_Force"
                                     boundingObject Sphere {
                                       radius 0.015
                                     }
@@ -519,7 +520,7 @@ DEF robot Robot {
             }
           ]
           endPoint Solid {
-            translation 0.12 0.025000005044304795 -0.012499999999998984
+            translation 0.12 0.025000005044304795 -0.012499999999998988
             rotation 0.9999999999999839 -3.621360181289959e-14 1.7947766484613683e-07 4.031583445807906e-07
             children [
               DEF upperlegbodyconnector Shape {
@@ -574,9 +575,9 @@ DEF robot Robot {
                                 translation 0 -0.07822802434151573 0
                                 children [
                                   DEF BL_Force TouchSensor {
-                                    name "BL_Force"
                                     translation 0 -0.011 0
                                     rotation 1 0 0 1.5707963220000003
+                                    name "BL_Force"
                                     boundingObject Sphere {
                                       radius 0.015
                                     }
@@ -641,16 +642,19 @@ DEF robot Robot {
         mass 12
       }
     }
+    TouchSensor {
+      translation 0 0.09999999999999999 0
+      name "collision_detector"
+      boundingObject Box {
+        size 0.55 0.15 0.205
+      }
+    }
   ]
-  name "robot"
   physics Physics {
   }
   controller "RL_controller"
   controllerArgs "None"
   supervisor TRUE
-  selfCollision TRUE
-  linearVelocity -3.791749271175196e-10 3.2814548382536395e-06 -4.693359011654567e-10
-  angularVelocity -1.5520144220064398e-09 -2.1274576895102393e-13 1.2515056268744246e-09
 }
 Floor {
 }

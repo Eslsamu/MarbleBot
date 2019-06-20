@@ -148,7 +148,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #update policy
         update()
 
-        if epoch > 10:
+        if epoch > 1:
             visualize_policy(max_ep_len, "saved_model/simple_save")
 
 
@@ -156,7 +156,7 @@ import json
 file = "devices.json"
 with open(file) as f:
     devices = json.load(f)
-    sensor_names = devices["sensors"]
+    sensor_names = devices["force_sensors"] + devices["IMUs"]
     motor_names = devices["lin_motors"] + devices["rot_motors"]
 
 obs_dim = len(sensor_names) * 3 #TODO better solution (now just multiplies force sensor by 3 for each dim)

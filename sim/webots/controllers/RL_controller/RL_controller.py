@@ -52,6 +52,7 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
 
         #terminate
         if done:
+            logging.warning("terminated after steps: " + str(s))
             break
 
     last_val = rew if done else sess.run(out[1], feed_dict={inp: obs.reshape(1, -1)})
