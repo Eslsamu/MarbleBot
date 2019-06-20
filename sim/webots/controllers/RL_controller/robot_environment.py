@@ -1,7 +1,7 @@
 import numpy as np
 import json
 import logging
-logging.basicConfig(filename='env.log', format='%(asctime)s %(message)s')
+
 
 TIMESTEP = 32
 DIRECTION = 0
@@ -15,31 +15,42 @@ class Robot_Environment():
         with open(file) as f:
             devices = json.load(f)
             sensor_names = devices["sensors"]
-            motor_names = devices["motors"]
+            lin_motor_names = devices["lin_motors"]
+            rot_motor_names = devices["rot_motors"]
 
         self.init_sensors(sensor_names)
-        self.init_motors(motor_names)
+        self.init_motors(lin_motor_names, rot_motor_names)
         self.trans_field = self.sv.getFromDef("robot").getField("translation")
+
+        # small float for handling motor velocity limit
+        self.e = 1e-5
 
     def init_sensors(self, sensor_names):
         self.sensors = []
         for n in sensor_names:
             #TODO IMU
             s = self.sv.getTouchSensor(n)
-            s.enable(TIMESTEP)
+            s.enable(TIMESTEP*4)
             self.sensors.append(s)
 
-    def init_motors(self, motor_names):
-        # motors
-        self.motors = []
-        for n in motor_names:
+    def init_motors(self, lin_motor_names, rot_motor_names):
+        #linear motors
+        self.lin_motors = []
+        for n in lin_motor_names:
             m = self.sv.getMotor(n)
             m.setPosition(float(np.inf))
-            self.motors.append(m)
+            self.lin_motors.append(m)
 
+        #rotational motors
+        self.rot_motors = []
+        for n in rot_motor_names:
+            m = self.sv.getMotor(n)
+            m.setPosition(float(np.inf))
+            self.rot_motors.append(m)
 
         #TODO different maxvel for linear and rotational motor
-        self.maxVel = self.motors[0].getMaxVelocity()
+        self.maxLinVel = self.lin_motors[0].getMaxVelocity()
+        self.maxRotVel = self.rot_motors[0].getMaxVelocity()
 
     def distance_travelled(self, pos0, pos1, direction=DIRECTION):
         # travlled euclidean distance
@@ -65,8 +76,25 @@ class Robot_Environment():
 
 
     def actuate_motors(self, vel):
-        for m in range(len(self.motors)):
-            self.motors[m].setVelocity(float(vel[m]))
+        n_lin = len(self.lin_motors)
+        n_rot = len(self.rot_motors)
+
+        #set linear motor velocity
+        for m in range(n_lin):
+            #if np.abs(vel[m]) >= self.maxLinVel:
+                #logging.info("action is clipped")
+
+            #TODO better solution than clipping
+            v = np.clip(vel[m], -self.maxLinVel+self.e, self.maxLinVel-self.e)
+            self.lin_motors[m].setVelocity(float(v))
+
+        #set rotational motor velocity
+        for m in range(n_lin, n_rot):
+            #if np.abs(vel[m]) >= self.maxRotVel:
+             #   logging.info("action is clipped")
+            v = np.clip(vel[m], -self.maxRotVel, self.maxRotVel)
+            self.rot_motors[m].setVelocity(float(v))
+
     #TODO
     def calculate_energy(self):
         return 0

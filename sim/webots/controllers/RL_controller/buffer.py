@@ -45,7 +45,6 @@ class Buffer():
                 logp = epi["logp"]
                 ep_len = epi["ep_len"]
                 last_val = epi["last_val"]
-                print("obs", obs)
                 for t in range(ep_len):
                     self.store(obs[t], a[t], rew[t], val[t], logp[t])
                 self.finish_path(last_val)

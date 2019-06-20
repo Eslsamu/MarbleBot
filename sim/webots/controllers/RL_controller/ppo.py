@@ -1,6 +1,6 @@
 import time
 import logging
-logging.basicConfig(filename='ppo.log',format='%(asctime)s %(message)s')
+logging.basicConfig(filename='ppo.log',format='%(asctime)s %(message)s', level=logging.DEBUG)
 import numpy as np
 import tensorflow as tf
 from rl_policy import actor_critic
@@ -54,7 +54,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
             hidden_sizes = (64,64), act_dim=None, obs_dim= None, n_proc = 2, model_path = SAVE_MODEL_PATH):
 
     if not(act_dim and obs_dim):
-            logging.warning("Missing action or obs dimension")
+            logging.info("Missing action or obs dimension")
 
     #tensorflow graph inputs
     obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim))
@@ -120,7 +120,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
             "value func loss:" + str(val_l_old) + "\n" +
             "delta policy loss: " + str(pi_l_new-pi_l_old) + "\n" +
             "delta value func loss: " + str(val_l_new - val_l_old) + "\n" +
-            "kl: " + str(approx_kl) + "\n" +
+            "kl: " + str(kl) + "\n" +
             "entropy: " + str(ent) + "\n"
         )
 
@@ -131,7 +131,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
     #experience and training loop
     for epoch in range(epochs):
-
+        print("epoch", epoch)
         # save model
         saver.save_model()
 
@@ -144,12 +144,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         buf.store_epoch(epoch_data)
 
 
-        #TODO sim data to buffer
-        #TODO last value and finishing path
-        #TODO logging
         #TODO log episode return
-        #TODO cutting trajectory off logg
-
         #update policy
         update()
 
@@ -159,8 +154,8 @@ file = "devices.json"
 with open(file) as f:
     devices = json.load(f)
     sensor_names = devices["sensors"]
-    motor_names = devices["motors"]
+    motor_names = devices["lin_motors"] + devices["rot_motors"]
 
-obs_dim = len(sensor_names) * 3 #TODO now just multiplies force sensor by 3 for each dim
+obs_dim = len(sensor_names) * 3 #TODO better solution (now just multiplies force sensor by 3 for each dim)
 act_dim = len(motor_names)
-run_ppo(act_dim = act_dim, obs_dim = obs_dim)
+run_ppo(act_dim = act_dim, obs_dim = obs_dim, n_proc=1)

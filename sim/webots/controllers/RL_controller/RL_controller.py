@@ -3,10 +3,10 @@ from tensorflow import Session, Graph, saved_model
 import sys
 from robot_environment import Robot_Environment
 import pickle
-import logging
 import joblib
 import os.path as osp
-
+import logging
+logging.basicConfig(filename='env.log', format='%(asctime)s %(message)s', level=logging.INFO)
 
 """
 run one episode until it terminates, the epoch is over or it reached the max time steps
@@ -23,11 +23,11 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
     #cut of episode if total process steps are reached
     if total_steps < max_ep_steps:
         n_steps = total_steps
-        logging.warning("episode cut off after " + str(total_steps) + " steps")
+        logging.info("episode will cut off after " + str(total_steps) + " steps")
     else:
         n_steps = max_ep_steps
 
-    logging.warning("has to do steps " + str(n_steps))
+    logging.info("has to do steps " + str(n_steps))
 
     #episode loop
     for s in range(n_steps):
@@ -56,7 +56,6 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
 
     last_val = rew if done else sess.run(out[1], feed_dict={inp: obs.reshape(1, -1)})
 
-    #TODO check correctness
     return {"obs": ep_obs, "a": ep_a,"val":ep_vals, "rew": ep_rews, "logp": ep_logp,
             "ep_ret": ep_ret,"ep_len": ep_len, "last_val":last_val}
 
@@ -101,17 +100,18 @@ env = Robot_Environment(supervisor = sv)
 ep_data = run_episode(env, sess, inp, out,steps_to_go, max_ep_steps)
 
 #save episode data
+#save episode data
 pickle.dump(ep_data, open(data_dir+str(steps_to_go), "wb"))
 
 #calculate steps for next episode
 steps_to_go = steps_to_go - ep_data["ep_len"]
 
 #reset simulation or quit if epoch is over
-if steps_to_go == 0:
+if steps_to_go <= 0:
     sv.simulationQuit(1)
 else:
     #log episode info
-    logging.warning("obs: len " + str(len(ep_data["obs"])) + " index0 " + str(ep_data["obs"][0]) + "\n" +
+    logging.info("obs: len " + str(len(ep_data["obs"])) + " index0 " + str(ep_data["obs"][0]) + "\n" +
                     "a: len " + str(len(ep_data["a"])) + " index0 " + str(ep_data["a"][0]) + "\n" +
                     "val: len " + str(len(ep_data["val"])) + " index0 " + str(ep_data["val"][0]) + "\n" +
                     "rew: len " + str(len(ep_data["rew"])) + " index0 " + str(ep_data["rew"][0]) + "\n" +
