@@ -72,8 +72,10 @@ model_dir = sys.argv[4]
 graph = Graph()
 sess = Session(graph=graph)
 
+logging.warning("starting to load " + str(count_file))
 #restore model
 saved_model.loader.load(sess, [saved_model.tag_constants.SERVING], model_dir)
+logging.warning("loaded succesfully " + str(count_file))
 
 #get restored model ops and tensors
 model_info = joblib.load(osp.join(model_dir, 'model_info.pkl'))
