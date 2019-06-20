@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from rl_policy import actor_critic
 from buffer import Buffer
-from wbt_jobs import run_job
+from wbt_jobs import run_job, visualize_policy
 import os.path as osp
 import shutil
 import joblib
@@ -147,6 +147,9 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #TODO log episode return
         #update policy
         update()
+
+        if epoch > 10:
+            visualize_policy(max_ep_len, "saved_model/simple_save")
 
 
 import json

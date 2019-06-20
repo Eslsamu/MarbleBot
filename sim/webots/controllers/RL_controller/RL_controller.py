@@ -65,17 +65,18 @@ sv = Supervisor()
 #read controller arguments
 max_ep_steps = int(sys.argv[1])
 data_dir = sys.argv[2]
-count_file = sys.argv[3]
-model_dir = sys.argv[4]
+model_dir = sys.argv[3]
+try:
+    count_file = sys.argv[4]
+except IndexError:
+    count_file = None
 
 #create new session
 graph = Graph()
 sess = Session(graph=graph)
 
-logging.warning("starting to load " + str(count_file))
 #restore model
 saved_model.loader.load(sess, [saved_model.tag_constants.SERVING], model_dir)
-logging.warning("loaded succesfully " + str(count_file))
 
 #get restored model ops and tensors
 model_info = joblib.load(osp.join(model_dir, 'model_info.pkl'))
@@ -92,8 +93,11 @@ val = model["val"]
 logp_pi = model["logp_pi"]
 out = [pi, val, logp_pi]
 
-#get steps to go for this epoch
-steps_to_go = pickle.load(open(count_file, "rb"))
+if count_file:
+    #get steps to go for this epoch
+    steps_to_go = pickle.load(open(count_file, "rb"))
+else:
+    steps_to_go = max_ep_steps
 
 #create robot environment
 env = Robot_Environment(supervisor = sv)
@@ -101,12 +105,11 @@ env = Robot_Environment(supervisor = sv)
 #run episode and collect episode data
 ep_data = run_episode(env, sess, inp, out,steps_to_go, max_ep_steps)
 
-#save episode data
-#save episode data
-pickle.dump(ep_data, open(data_dir+str(steps_to_go), "wb"))
-
 #calculate steps for next episode
 steps_to_go = steps_to_go - ep_data["ep_len"]
+
+#save episode data
+pickle.dump(ep_data, open(data_dir+str(steps_to_go), "wb"))
 
 #reset simulation or quit if epoch is over
 if steps_to_go <= 0:

@@ -63,7 +63,7 @@ def run_job(n_proc, total_steps, max_ep_steps, model_path, build_files = False, 
     if build_files:
         worldfiles = []
         for p in range(n_proc):
-            args = [max_ep_steps, data_dir+ "/proc" + str(p) + "-", count_dir  + "/c" + str(p) + '.p', model_path]
+            args = [max_ep_steps, data_dir+ "/proc" + str(p) + "-",  model_path, count_dir + "/c" + str(p) + '.p']
             f = create_worldfile(p, args)
             worldfiles.append(f)
     else:
@@ -103,4 +103,12 @@ def run_job(n_proc, total_steps, max_ep_steps, model_path, build_files = False, 
                 pass
 
     return epoch_data
+
+
+def visualize_policy(steps, model_path):
+    data_file = "test_data"
+    args = [steps, data_file, model_path]
+    f = create_worldfile(id="test", args=args)
+    subprocess.Popen(["webots --batch " + f], shell=True)
+
 
