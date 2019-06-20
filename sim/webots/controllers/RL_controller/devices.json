@@ -5,11 +5,17 @@
     "linear motor3",
     "linear motor4"
             ],
-"sensors":  [
+"force_sensors":  [
             "FR_Force",
             "FL_Force",
             "BR_Force",
             "BL_Force"],
+"collision_detectors": [
+	"collision detector1"
+],
+"IMUs": [
+	"IMU1"
+]
 "rot_motors":    [
     "rotational motor1",
     "rotational motor2",
