@@ -84,7 +84,10 @@ class Buffer():
         the buffer, with advantages appropriately normalized (shifted to have
         mean zero and std one). Also, resets some pointers in the buffer.
         """
-        assert self.ptr == self.max_size    # buffer has to be full before you can get
+        try:
+            assert self.ptr == self.max_size    # buffer has to be full before you can get
+        except AssertionError:
+            print("====================buffer filled with ", self.ptr,"==================")
         self.ptr, self.path_start_idx = 0, 0
         # the next two lines implement the advantage normalization trick
         adv_mean = np.mean(self.adv_buf)

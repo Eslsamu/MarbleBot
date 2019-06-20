@@ -30,7 +30,7 @@ class Robot_Environment():
         for n in sensor_names:
             #TODO IMU
             s = self.sv.getTouchSensor(n)
-            s.enable(TIMESTEP*4)
+            s.enable(TIMESTEP*2)
             self.sensors.append(s)
 
     def init_motors(self, lin_motor_names, rot_motor_names):
