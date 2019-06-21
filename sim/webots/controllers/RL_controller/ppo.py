@@ -169,15 +169,14 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         epoch_data = run_job(n_proc=n_proc, total_steps=epoch_steps, max_ep_steps= max_ep_len,model_path =saver.fpath,build_files=first)
 
         #save epoch data
-        buf.store_epoch(epoch_data)
+        avg_ret, avg_len = buf.store_epoch(epoch_data)
+        print("============Epoch", epoch, "average episode return:", avg_ret, "average episode length", avg_len, "============")
 
-
-        #TODO log episode return
         #update policy
         update()
 
-        if epoch > 1:
-            visualize_policy(max_ep_len, "saved_model/simple_save")
+        #if epoch > 1:
+           # visualize_policy(max_ep_len, "saved_model/simple_save")
 
 
 
@@ -190,4 +189,4 @@ with open(file) as f:
 
 obs_dim = len(sensor_names) * 3 #TODO better solution (now just multiplies force sensor by 3 for each dim)
 act_dim = len(motor_names)
-run_ppo(act_dim = act_dim, obs_dim = obs_dim, n_proc=1)
+run_ppo(epochs=100, epoch_steps=8000,act_dim = act_dim, obs_dim = obs_dim, n_proc=8)
