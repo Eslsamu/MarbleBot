@@ -144,7 +144,6 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         avg_ret, avg_len = buf.store_epoch(epoch_data)
         print("============Epoch", epoch, "average episode return:", avg_ret, "average episode length", avg_len, "============")
 
-        #TODO log episode return
         #update policy
         update()
 

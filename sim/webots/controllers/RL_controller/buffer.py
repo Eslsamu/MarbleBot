@@ -58,7 +58,7 @@ class Buffer():
                 self.finish_path(last_val)
 
                 total_len += ep_len
-                total_ret += epoch_data["ep_ret"]
+                total_ret += epi["ep_ret"]
 
 
         return total_ret/self.ptr, total_len/self.ptr
