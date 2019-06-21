@@ -37,13 +37,12 @@ class Buffer():
 
     """
     stores epoch data and returns:
-     - average return per episode
-     - average episode length
+     - max/min/average return per episode
+     - max/min/average episode length
     """
     def store_epoch(self, epoch_data):
-        total_len = 0
-        total_ret = 0
-        total_epi = 0
+        ep_lens = []
+        ep_rets = []
 
         for proc in epoch_data:
             for epi in proc:
@@ -58,12 +57,12 @@ class Buffer():
                     self.store(obs[t], a[t], rew[t], val[t], logp[t])
                 self.finish_path(last_val)
 
-                total_len += ep_len
-                total_ret += epi["ep_ret"]
-                total_epi += 1
+                ep_lens += [ep_len]
+                ep_rets += [epi["ep_ret"]]
 
 
-        return total_ret/total_epi, total_len/total_epi
+        return np.max(ep_rets), np.min(ep_rets), np.mean(ep_rets), \
+               np.max(ep_lens), np.min(ep_lens), np.mean(ep_lens)
 
     def finish_path(self, last_val=0):
         """

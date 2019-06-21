@@ -162,7 +162,6 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
     #experience and training loop
     for epoch in range(epochs):
-        print("epoch", epoch)
         # save model
         saver.save_model()
 
@@ -172,8 +171,11 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         epoch_data = run_job(n_proc=n_proc, total_steps=epoch_steps, max_ep_steps= max_ep_len,model_path =saver.fpath,build_files=first)
 
         #save epoch data
-        avg_ret, avg_len = buf.store_epoch(epoch_data)
-        print("============Epoch", epoch, "average episode return:", avg_ret, "average episode length", avg_len, "============")
+        max_ret, min_ret, avg_ret, max_len, min_len, avg_len = buf.store_epoch(epoch_data)
+
+        ep_info = "============Epoch " + str(epoch) + " max/min/avg return " + str(max_ret) +" " + str(min_ret) + " " + str(avg_ret) + " max/min/avg length " + " " + str(max_len) + " " + str(min_len) +" "+ str(avg_len) + "============"
+        print(ep_info)
+        logging.info(ep_info)
 
         #update policy
         update()
