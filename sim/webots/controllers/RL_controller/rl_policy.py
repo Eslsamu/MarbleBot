@@ -36,7 +36,7 @@ def policy(state, action, hidden_sizes):
 def actor_critic(state, action, hidden_sizes=(64,64)):
 
     #policy 
-    with tf.name_scope('pi'):
+    with tf.variable_scope('pi'):
         pi, logp, logp_pi = policy(state, action, hidden_sizes)
 
     #state value estimation network
