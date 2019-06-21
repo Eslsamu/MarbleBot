@@ -43,6 +43,7 @@ class Buffer():
     def store_epoch(self, epoch_data):
         total_len = 0
         total_ret = 0
+        total_epi = 0
 
         for proc in epoch_data:
             for epi in proc:
@@ -59,9 +60,10 @@ class Buffer():
 
                 total_len += ep_len
                 total_ret += epi["ep_ret"]
+                total_epi += 1
 
 
-        return total_ret/self.ptr, total_len/self.ptr
+        return total_ret/total_epi, total_len/total_epi
 
     def finish_path(self, last_val=0):
         """
