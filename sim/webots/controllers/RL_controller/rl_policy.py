@@ -60,7 +60,7 @@ def policy(state, action, hidden_sizes):
 def actor_critic(state, action, action_scale, hidden_sizes=(400,300)):
 
     #policy 
-    with tf.name_scope('pi'):
+    with tf.variable_scope('pi'):
         pi, logp, logp_pi = policy(state, action, hidden_sizes)
         pi, logp, logp_pi = apply_squashing_func(action, pi, logp, logp_pi)
 
