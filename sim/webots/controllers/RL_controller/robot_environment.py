@@ -104,7 +104,7 @@ class Robot_Environment():
     def actuate_motors(self, vel):
         n_lin = len(self.lin_motors)
         n_rot = len(self.rot_motors)
-
+        print(vel)
         #set linear motor velocity
         for m in range(n_lin):
             #if np.abs(vel[m]) >= self.maxLinVel:

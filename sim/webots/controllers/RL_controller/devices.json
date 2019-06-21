@@ -16,7 +16,10 @@
     "rotational motor3",
     "rotational motor4",
     "rotational motor5",
-    "rotational motor6"],
+    "rotational motor6",
+    "rotational motor7",
+    "rotational motor8"
+],
 "IMUs": [
     "IMU_Torso"
     ],

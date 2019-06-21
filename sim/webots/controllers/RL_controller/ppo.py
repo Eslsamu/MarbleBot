@@ -51,10 +51,13 @@ class ModelSaver():
 
 def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1e-3,
             gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2,
-            hidden_sizes = (64,64), act_dim=None, obs_dim= None, n_proc = 2, model_path = SAVE_MODEL_PATH):
+            hidden_sizes = (64,64), act_dim=None, obs_dim= None, action_scale=None,n_proc = 2, model_path = SAVE_MODEL_PATH):
 
     if not(act_dim and obs_dim):
             logging.info("Missing action or obs dimension")
+
+    if action_scale is None:
+        action_scale = np.ones(act_dim)
 
     #tensorflow graph inputs
     obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim))
@@ -66,7 +69,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
 
     #tensorflow graph outputs
-    pi, logp, logp_pi, val = actor_critic(obs_ph, act_ph, hidden_sizes)
+    pi, logp, logp_pi, val = actor_critic(obs_ph, act_ph, action_scale, hidden_sizes)
 
     #experience buffer
     buf = Buffer(obs_dim, act_dim, epoch_steps, gamma, lam)
@@ -160,4 +163,5 @@ with open(file) as f:
 
 obs_dim = len(sensor_names) * 3 #TODO better solution (now just multiplies force sensor by 3 for each dim)
 act_dim = len(motor_names)
-run_ppo(epochs=100, epoch_steps=8000,act_dim = act_dim, obs_dim = obs_dim, n_proc=8)
+action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
+run_ppo(epochs=100, epoch_steps=800, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
