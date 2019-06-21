@@ -35,7 +35,15 @@ class Buffer():
         self.logp_buf[self.ptr] = logp
         self.ptr += 1
 
+    """
+    stores epoch data and returns:
+     - average return per episode
+     - average episode length
+    """
     def store_epoch(self, epoch_data):
+        total_len = 0
+        total_ret = 0
+
         for proc in epoch_data:
             for epi in proc:
                 obs = epi["obs"]
@@ -48,6 +56,12 @@ class Buffer():
                 for t in range(ep_len):
                     self.store(obs[t], a[t], rew[t], val[t], logp[t])
                 self.finish_path(last_val)
+
+                total_len += ep_len
+                total_ret += epoch_data["ep_ret"]
+
+
+        return total_ret/self.ptr, total_len/self.ptr
 
     def finish_path(self, last_val=0):
         """
