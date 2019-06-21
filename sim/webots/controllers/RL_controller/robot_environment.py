@@ -4,7 +4,7 @@ import logging
 
 
 TIMESTEP = 32
-DIRECTION = 0
+DIRECTION = np.pi
 
 DEVICES_FILE = "devices.json"
 
