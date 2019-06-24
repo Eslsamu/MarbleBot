@@ -61,11 +61,12 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         action_scale = np.ones(act_dim)
 
     #tensorflow graph inputs
-    obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim), name='observations')
-    act_ph = tf.placeholder(dtype = tf.float32, shape=(None,act_dim), name='actions')
-    adv_ph = tf.placeholder(dtype = tf.float32, shape=(None,), name='advantage')
-    ret_ph = tf.placeholder(dtype = tf.float32, shape=(None,), name='return')
-    logp_old_ph = tf.placeholder(dtype = tf.float32, shape=(None,), name='logp_old')
+    with tf.name_scope('graph_inputs'):
+        obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim), name='observations')
+        act_ph = tf.placeholder(dtype = tf.float32, shape=(None,act_dim), name='actions')
+        adv_ph = tf.placeholder(dtype = tf.float32, shape=(None,), name='advantage')
+        ret_ph = tf.placeholder(dtype = tf.float32, shape=(None,), name='return')
+        logp_old_ph = tf.placeholder(dtype = tf.float32, shape=(None,), name='logp_old')
 
     obs_summary = tf.summary.scalar('observations', obs_ph)
     act_summary = tf.summary.scalar('actions', act_ph)
@@ -92,30 +93,51 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
     logging.info('\nNumber of parameters: \t pi: %d, \t v: %d\n'%var_counts)
 
     #loss functions
-    ratio = tf.exp(logp - logp_old_ph)      #pi(a|s) / pi_old(a|s)
-    min_adv = tf.where(adv_ph > 0, (1 + clip_ratio) * adv_ph, (1 - clip_ratio) * adv_ph)
-    pi_loss = -tf.reduce_mean(tf.minimum(ratio * adv_ph, min_adv))
-    v_loss = tf.reduce_mean((ret_ph - val)**2)
+    with tf.name_scope('pi_loss'):
+        ratio = tf.exp(logp - logp_old_ph)      #pi(a|s) / pi_old(a|s)
+        min_adv = tf.where(adv_ph > 0, (1 + clip_ratio) * adv_ph, (1 - clip_ratio) * adv_ph)
+        pi_loss = -tf.reduce_mean(tf.minimum(ratio * adv_ph, min_adv))
+
+    with tf.name_scope('val_loss'):
+        v_loss = tf.reduce_mean((ret_ph - val)**2)
 
     # Info (useful to watch during learning)
-    approx_kl = tf.reduce_mean(logp_old_ph - logp)  # a sample estimate for KL-divergence, easy to compute
-    approx_ent = tf.reduce_mean(-logp)  # a sample estimate for entropy, also easy to compute
-    clipped = tf.logical_or(ratio > (1 + clip_ratio), ratio < (1 - clip_ratio))
-    clipfrac = tf.reduce_mean(tf.cast(clipped, tf.float32))
+    with tf.name_scope('kl_divergence'):
+        approx_kl = tf.reduce_mean(logp_old_ph - logp)  # a sample estimate for KL-divergence, easy to compute
+        clipped = tf.logical_or(ratio > (1 + clip_ratio), ratio < (1 - clip_ratio))
+        clipfrac = tf.reduce_mean(tf.cast(clipped, tf.float32))
+
+        kl_ph = tf.placeholder(tf.float32,shape=None,name='kl_summary')
+        kl_summary = tf.summary.scalar('kl_summ', kl_ph)
+    
+    
+    with tf.name_scope('entropy'):
+        approx_ent = tf.reduce_mean(-logp)  # a sample estimate for entropy, also easy to compute
+        
+        ent_ph = tf.placeholder(tf.float32,shape=None,name='entropy')
+        ent_summary = tf.summary.scalar('kl_summ', ent_ph)
+
+    kl_summaries = tf.summary.merge([kl_summary])
 
     with tf.name_scope('performance'):
         pi_loss_ph = tf.placeholder(tf.float32,shape=None,name='piloss_summary')
         v_loss_ph = tf.placeholder(tf.float32,shape=None,name='vloss_summary')
+        
         pi_loss_summary = tf.summary.scalar('pi_loss_summ', pi_loss_ph)
         v_loss_summary = tf.summary.scalar('val_loss_summ', v_loss_ph)
+        
     
     performance_summaries = tf.summary.merge([pi_loss_summary,v_loss_summary])
 
     #optimizer
-    opt_pi = tf.train.AdamOptimizer(learning_rate = pi_lr).minimize(pi_loss)
-    opt_val = tf.train.AdamOptimizer(learning_rate = vf_lr).minimize(v_loss)
+    with tf.name_scope('Train_pi'):
+        opt_pi = tf.train.AdamOptimizer(learning_rate = pi_lr).minimize(pi_loss)
+    
+    with tf.name_scope('Train_val'):
+        opt_val = tf.train.AdamOptimizer(learning_rate = vf_lr).minimize(v_loss)
 
     sess = tf.Session()
+
     if not os.path.exists('summaries'):
         os.mkdir('summaries')
     if not os.path.exists(os.path.join('summaries','first')):
@@ -136,8 +158,11 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         for i in range(pi_iters):
             _, kl = sess.run([opt_pi, approx_kl], feed_dict=inputs)
             kl = np.mean(kl)
+            summ = sess.run(kl_summaries, feed_dict={kl_ph:kl})
+            summ_writer.add_summary(summ, i)
             if kl > 1.5 * target_kl:
                 logging.info('Early stopping at step %d due to reaching max kl.'%i)
+                print('early stopping')
                 break
 
         #value function training
