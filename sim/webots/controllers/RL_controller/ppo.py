@@ -117,7 +117,6 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         ent_ph = tf.placeholder(tf.float32,shape=None,name='entropy')
         ent_summary = tf.summary.scalar('kl_summ', ent_ph)
 
-    kl_summaries = tf.summary.merge([kl_summary])
 
     with tf.name_scope('performance'):
         pi_loss_ph = tf.placeholder(tf.float32,shape=None,name='piloss_summary')
@@ -127,7 +126,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         v_loss_summary = tf.summary.scalar('val_loss_summ', v_loss_ph)
         
     
-    performance_summaries = tf.summary.merge([pi_loss_summary,v_loss_summary])
+    performance_summaries = tf.summary.merge([pi_loss_summary,v_loss_summary,kl_summary, ent_summary, return_summary])
 
     #optimizer
     with tf.name_scope('Train_pi'):
@@ -151,6 +150,8 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
     def update():
         #create input dictionary from trajector and graph inputs
         inputs =  {g:t for g,t in zip(graph_inputs,buf.get())}
+        ret = inputs[ret_ph]
+        print(ret)
 
         pi_l_old, val_l_old, ent = sess.run([pi_loss, v_loss, approx_ent], feed_dict=inputs)
 
@@ -178,7 +179,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
             "kl: " + str(kl) + "\n" +
             "entropy: " + str(ent) + "\n"
         )
-        summ = sess.run(performance_summaries, feed_dict={pi_loss_ph:pi_l_new, v_loss_ph:val_l_new})
+        summ = sess.run(performance_summaries, feed_dict={pi_loss_ph:pi_l_new, v_loss_ph:val_l_new, kl_ph:kl, ent_ph:ent, ret_ph:ret})
         summ_writer.add_summary(summ, epoch)
     start_time = time.time()
 
