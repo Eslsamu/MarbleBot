@@ -129,7 +129,7 @@ class Robot_Environment():
 
     def calculate_reward(self, pos0, pos1, power0, power1):
         # energy has high value
-        rew = self.distance_travelled(pos0, pos1) - self.calculate_energy(power0, power1)
+        rew = self.distance_travelled(pos0, pos1) - 0.001*self.calculate_energy(power0, power1)
         return rew
 
     def check_termination(self):
