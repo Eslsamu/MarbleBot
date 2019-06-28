@@ -68,12 +68,6 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         ret_ph = tf.placeholder(dtype = tf.float32, shape=(None,), name='return')
         logp_old_ph = tf.placeholder(dtype = tf.float32, shape=(None,), name='logp_old')
 
-    obs_summary = tf.summary.scalar('observations', obs_ph)
-    act_summary = tf.summary.scalar('actions', act_ph)
-    adv_summary = tf.summary.scalar('advantage', adv_ph)
-    ret_summary = tf.summary.scalar('return', ret_ph)
-    logp_old_summary = tf.summary.scalar('logp_old', logp_old_ph)
-
     graph_inputs = [obs_ph, act_ph, adv_ph, ret_ph, logp_old_ph]
     
     #input_summaries = tf.summary.merge([obs_summary,act_summary,adv_summary,ret_summary,logp_old_summary])
@@ -101,6 +95,9 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
     with tf.name_scope('val_loss'):
         v_loss = tf.reduce_mean((ret_ph - val)**2)
 
+    avg_ret = tf.reduce_mean(ret_ph)
+    avg_ret_ph = tf.placeholder(tf.float32, shape=None,name='return_summary')
+    ret_summary = tf.summary.scalar('ret_summ', avg_ret_ph)
     # Info (useful to watch during learning)
     with tf.name_scope('kl_divergence'):
         approx_kl = tf.reduce_mean(logp_old_ph - logp)  # a sample estimate for KL-divergence, easy to compute
@@ -115,10 +112,10 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         approx_ent = tf.reduce_mean(-logp)  # a sample estimate for entropy, also easy to compute
         
         ent_ph = tf.placeholder(tf.float32,shape=None,name='entropy')
-        ent_summary = tf.summary.scalar('kl_summ', ent_ph)
+        ent_summary = tf.summary.scalar('ent_summ', ent_ph)
 
 
-    with tf.name_scope('performance'):
+    with tf.name_scope('loss'):
         pi_loss_ph = tf.placeholder(tf.float32,shape=None,name='piloss_summary')
         v_loss_ph = tf.placeholder(tf.float32,shape=None,name='vloss_summary')
         
@@ -126,7 +123,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         v_loss_summary = tf.summary.scalar('val_loss_summ', v_loss_ph)
         
     
-    performance_summaries = tf.summary.merge([pi_loss_summary,v_loss_summary,kl_summary, ent_summary, return_summary])
+    performance_summaries = tf.summary.merge([pi_loss_summary,v_loss_summary,kl_summary, ent_summary,ret_summary])
 
     #optimizer
     with tf.name_scope('Train_pi'):
@@ -150,8 +147,6 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
     def update():
         #create input dictionary from trajector and graph inputs
         inputs =  {g:t for g,t in zip(graph_inputs,buf.get())}
-        ret = inputs[ret_ph]
-        print(ret)
 
         pi_l_old, val_l_old, ent = sess.run([pi_loss, v_loss, approx_ent], feed_dict=inputs)
 
@@ -159,18 +154,19 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         for i in range(pi_iters):
             _, kl = sess.run([opt_pi, approx_kl], feed_dict=inputs)
             kl = np.mean(kl)
-            summ = sess.run(kl_summaries, feed_dict={kl_ph:kl})
-            summ_writer.add_summary(summ, i)
+
             if kl > 1.5 * target_kl:
                 logging.info('Early stopping at step %d due to reaching max kl.'%i)
-                print('early stopping')
+
                 break
 
         #value function training
         for i in range(val_iters):
             sess.run(opt_val, feed_dict=inputs)
 
-        pi_l_new, val_l_new, kl, cf = sess.run([pi_loss, v_loss, approx_kl, clipfrac], feed_dict=inputs)
+        pi_l_new, val_l_new, kl, cf, ret = sess.run([pi_loss, v_loss, approx_kl, clipfrac, avg_ret], feed_dict=inputs)
+        print(ret)
+        print(pi_l_new)
         logging.info(
             "policy loss: " + str(pi_l_old) + "\n" +
             "value func loss:" + str(val_l_old) + "\n" +
@@ -179,7 +175,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
             "kl: " + str(kl) + "\n" +
             "entropy: " + str(ent) + "\n"
         )
-        summ = sess.run(performance_summaries, feed_dict={pi_loss_ph:pi_l_new, v_loss_ph:val_l_new, kl_ph:kl, ent_ph:ent, ret_ph:ret})
+        summ = sess.run(performance_summaries, feed_dict={pi_loss_ph:pi_l_new, v_loss_ph:val_l_new, kl_ph:kl, ent_ph:ent, avg_ret_ph:ret})
         summ_writer.add_summary(summ, epoch)
     start_time = time.time()
 
@@ -197,9 +193,9 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         epoch_data = run_job(n_proc=n_proc, total_steps=epoch_steps, max_ep_steps= max_ep_len,model_path =saver.fpath,build_files=first)
 
         #save epoch data
-        max_ret, min_ret, avg_ret, max_len, min_len, avg_len = buf.store_epoch(epoch_data)
+        max_ret, min_ret, avg_return, max_len, min_len, avg_len = buf.store_epoch(epoch_data)
 
-        ep_info = "============Epoch " + str(epoch) + " max/min/avg return " + str(max_ret) +" " + str(min_ret) + " " + str(avg_ret) + " max/min/avg length " + " " + str(max_len) + " " + str(min_len) +" "+ str(avg_len) + "============"
+        ep_info = "============Epoch " + str(epoch) + " max/min/avg return " + str(max_ret) +" " + str(min_ret) + " " + str(avg_return) + " max/min/avg length " + " " + str(max_len) + " " + str(min_len) +" "+ str(avg_len) + "============"
         print(ep_info)
         logging.info(ep_info)
 
@@ -220,4 +216,4 @@ with open(file) as f:
 obs_dim = len(sensor_names) * 3 #TODO better solution (now just multiplies force sensor by 3 for each dim)
 act_dim = len(motor_names)
 action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=800, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
