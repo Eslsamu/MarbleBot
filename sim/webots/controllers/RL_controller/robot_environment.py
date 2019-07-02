@@ -107,7 +107,7 @@ class Robot_Environment():
 
 
     def get_sensor_data(self):
-        data = np.zeros(0)
+        data = []
         for s in self.force_sensors:
             vals = s.getValues()
             #in the beginning of the sampling period the sensor data is Nan
@@ -130,7 +130,7 @@ class Robot_Environment():
             # in the beginning of the sampling period the sensor data is Nan
             if np.isnan(val):
                 val = 0
-            data.append(v)
+            data.append(val)
         
         vals = self.gyro.getValues()
         if np.isnan(vals).any():
@@ -144,7 +144,7 @@ class Robot_Environment():
         for v in vals:
             data.append(v)
 
-        return data
+        return np.array(data)
 
     """
     velocity motor control for abduction, rotation and contraction of legs

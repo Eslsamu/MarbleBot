@@ -219,10 +219,10 @@ import json
 file = "devices.json"
 with open(file) as f:
     devices = json.load(f)
-    sensor_names = devices["force_sensors"]*3 + devices["IMUs"]*3 + devices["pos_sensors"]
+    sensor_names = devices["force_sensors"]*3 + devices["IMUs"]*3 + devices["Gyro"]*3 + devices["Accelerometer"]*3 + devices["pos_sensors"]
     motor_names = devices["lin_motors"] + devices["rot_motors"]
 
 obs_dim = len(sensor_names) #TODO better solution (now just multiplies force sensor by 3 for each dim)
 act_dim = len(motor_names)
 action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=2000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
