@@ -21,6 +21,7 @@ def count_vars(scope=''):
     v = get_vars(scope)
     return sum([np.prod(var.shape.as_list()) for var in v])
 
+
 class ModelSaver():
 
 
@@ -156,12 +157,12 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
             print(kl)
             kl = np.mean(kl)
             print("kl",kl)
-            print("ratio", rat)
-            print("min_adv", min)
-            print(l, l_old)
+            print("ratio", rat[0:4])
+            print("min_adv", min[0:4])
+            print("compare", l[0:4], l_old[0:4])
             if kl > 1.5 * target_kl:
-                logging.info('Early stopping at step %d due to reaching max kl.'+str(kl))
-                print("kl too big", kl)
+                logging.info('Early stopping at step %d due to reaching max kl.'%i)
+                print("kl too big", kl, "after", i+1)
                 break
 
         #value function training
@@ -177,9 +178,9 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
         print(update_info)
         logging.info(update_info)
+
         summ = sess.run(performance_summaries, feed_dict={pi_loss_ph:pi_l_new, v_loss_ph:val_l_new, kl_ph:kl, ent_ph:ent, avg_ret_ph:ret})
         summ_writer.add_summary(summ, epoch)
-    start_time = time.time()
 
     #initialize model saving
     saver = ModelSaver(sess, inputs = {"obs":obs_ph},outputs={"pi": pi, "val": val, "logp_pi": logp_pi}, export_dir= model_path)
@@ -218,10 +219,10 @@ import json
 file = "devices.json"
 with open(file) as f:
     devices = json.load(f)
-    sensor_names = devices["force_sensors"] + devices["IMUs"]
+    sensor_names = devices["force_sensors"]*3 + devices["IMUs"]*3 + devices["pos_sensors"]
     motor_names = devices["lin_motors"] + devices["rot_motors"]
 
-obs_dim = len(sensor_names) * 3 #TODO better solution (now just multiplies force sensor by 3 for each dim)
+obs_dim = len(sensor_names) #TODO better solution (now just multiplies force sensor by 3 for each dim)
 act_dim = len(motor_names)
 action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=100, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
+run_ppo(epochs=100, epoch_steps=2000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)

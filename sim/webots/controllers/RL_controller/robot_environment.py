@@ -2,7 +2,7 @@ import numpy as np
 import json
 
 
-TIMESTEP = 32
+TIMESTEP = 128
 DIRECTION = np.pi
 
 DEVICES_FILE = "devices.json"
@@ -92,14 +92,16 @@ class Robot_Environment():
             #in the beginning of the sampling period the sensor data is Nan
             if np.isnan(vals).any():
                 vals = np.zeros(len(vals))
-            data.append(vals)
+            for v in vals:
+                data.append(v)
 
         for i in self.IMUs:
             vals = i.getRollPitchYaw()
             # in the beginning of the sampling period the sensor data is Nan
             if np.isnan(vals).any():
                 vals = np.zeros(len(vals))
-            data.append(vals)
+            for v in vals:
+                data.append(v)
 
         for i in self.pos_sensors:
             val = i.getValue()
