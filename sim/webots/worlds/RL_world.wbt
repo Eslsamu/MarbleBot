@@ -655,6 +655,9 @@ DEF robot Robot {
   controller "RL_controller"
   controllerArgs "None"
   supervisor TRUE
+  battery [
+    5000000, 5000000, 0
+  ]
 }
 Floor {
 }

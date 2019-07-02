@@ -1,6 +1,5 @@
 import numpy as np
 import json
-import logging
 
 
 TIMESTEP = 32
@@ -62,7 +61,6 @@ class Robot_Environment():
             m.setPosition(float(np.inf))
             self.rot_motors.append(m)
 
-        #TODO different maxvel for linear and rotational motor
         self.maxLinVel = self.lin_motors[0].getMaxVelocity()
         self.maxRotVel = self.rot_motors[0].getMaxVelocity()
 
@@ -100,37 +98,57 @@ class Robot_Environment():
         data = np.array(data)
         return data
 
-
+    """
+    velocity motor control for abduction, rotation and contraction of legs
+    
+    this version of controlling returns the sum of the clipped velocity amount
+    """
     def actuate_motors(self, vel):
         n_lin = len(self.lin_motors)
         n_rot = len(self.rot_motors)
+
+        total_clipped = 0
+
         #set linear motor velocity
         for m in range(n_lin):
-            #if np.abs(vel[m]) >= self.maxLinVel:
-                #logging.info("action is clipped")
-
-            #TODO better solution than clipping
-            v = np.clip(vel[m], -self.maxLinVel+self.e, self.maxLinVel-self.e)
-            self.lin_motors[m].setVelocity(float(v))
+            dif = np.abs(vel[m]) - (self.maxLinVel - self.e)
+            if dif > 0:
+                total_clipped += dif
+                if vel[m] > 0:
+                    v = float(vel[m] - dif)
+                else:
+                    v = float(vel[m] + dif)
+            else:
+                v = float(vel[m])
+            self.lin_motors[m].setVelocity(v)
 
         #set rotational motor velocity
-        for m in range(n_lin, n_rot):
-            #if np.abs(vel[m]) >= self.maxRotVel:
-             #   logging.info("action is clipped")
-            v = np.clip(vel[m], -self.maxRotVel, self.maxRotVel)
-            self.rot_motors[m].setVelocity(float(v))
+        for m in range(n_rot):
+            dif = np.abs(vel[m+n_lin]) - (self.maxRotVel - self.e)
+            if dif > 0:
+                total_clipped += dif
+                if vel[m+n_lin] > 0:
+                    v = float(vel[m+n_lin] - dif)
+                else:
+                    v = float(vel[m+n_lin] + dif)
+            else:
+                v = float(vel[m+n_lin])
 
-    def enable_battery(self):
-        bat_sample = TIMESTEP  # battery sampling period
-        self.sv.batterySensorEnable(bat_sample)
+            self.rot_motors[m].setVelocity(v)
 
-    def calculate_energy(self, power0, power1):
-        return (power0-power1)
+        return total_clipped
 
-    def calculate_reward(self, pos0, pos1, power0, power1):
-        # energy has high value
-        rew = self.distance_travelled(pos0, pos1) - 0.001*self.calculate_energy(power0, power1)
-        return rew
+
+    def energy_consumed(self, power0, power1):
+        return power0-power1
+
+    def calculate_reward(self, pos0, pos1, power0, power1, clipped,c_rew=1, c_ene = 0.000001, c_clip=0.01):
+        d = c_rew * self.distance_travelled(pos0, pos1)
+        e = c_ene * self.energy_consumed(power0, power1)
+        c = c_clip * clipped
+
+        rew = d - e - c
+        return rew, {"distance":d,"energy":e,"clipped":c}
 
     def check_termination(self):
         val = self.collision_detector.getValue()
@@ -144,7 +162,7 @@ class Robot_Environment():
 
 
     def step(self,action, t=TIMESTEP):
-        self.actuate_motors(action)
+        clipped = self.actuate_motors(action)
 
         pos0 = self.trans_field.getSFVec3f()
         power0 = self.sv.batterySensorGetValue()
@@ -154,8 +172,8 @@ class Robot_Environment():
         pos1 = self.trans_field.getSFVec3f()
         power1 = self.sv.batterySensorGetValue()
 
-        rew = self.calculate_reward(pos0, pos1, power0, power1)
+        rew, r_info = self.calculate_reward(pos0, pos1, power0, power1, clipped)
         obs = self.get_sensor_data()
         done = self.check_termination()
 
-        return obs,rew, done
+        return obs, rew, done, r_info

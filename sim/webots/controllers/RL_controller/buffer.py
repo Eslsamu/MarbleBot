@@ -44,6 +44,12 @@ class Buffer():
         ep_lens = []
         ep_rets = []
 
+        #additional info
+        ep_enes = []
+        ep_clippeds = []
+        ep_dists = []
+        ep_abs_dists = []
+
         for proc in epoch_data:
             for epi in proc:
                 obs = epi["obs"]
@@ -52,17 +58,29 @@ class Buffer():
                 rew = epi["rew"]
                 logp = epi["logp"]
                 ep_len = epi["ep_len"]
+                ep_rets = epi["ep_ret"]
                 last_val = epi["last_val"]
+                ep_ene = epi["ep_ene"]
+                ep_clipped = epi["ep_clipped"]
+                ep_dist = epi["ep_dist"]
+                ep_abs_dist = epi["ep_abs_dist"]
+
                 for t in range(ep_len):
                     self.store(obs[t], a[t], rew[t], val[t], logp[t])
                 self.finish_path(last_val)
 
                 ep_lens += [ep_len]
-                ep_rets += [epi["ep_ret"]]
+                ep_rets += [ep_rets]
+                ep_enes += [ep_ene]
+                ep_clippeds += [ep_clipped]
+                ep_dists += [ep_dist]
+                ep_abs_dists += [ep_abs_dist]
 
 
         return np.max(ep_rets), np.min(ep_rets), np.mean(ep_rets), \
-               np.max(ep_lens), np.min(ep_lens), np.mean(ep_lens)
+               np.max(ep_lens), np.min(ep_lens), np.mean(ep_lens), \
+               np.mean(ep_enes), np.mean(ep_clippeds), np.mean(ep_dists),\
+               np.mean(ep_abs_dists)
 
     def finish_path(self, last_val=0):
         """

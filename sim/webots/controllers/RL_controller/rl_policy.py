@@ -57,9 +57,9 @@ def policy(state, action, hidden_sizes):
 
     #squash standard deviation to avoid extrem values
     with tf.variable_scope('log_std'):
-        log_std = tf.get_variable(name='log_std', initializer=-0.5*np.ones(act_dim, dtype=np.float32))
-        #log_std = tf.layers.dense(net, act_dim, activation=tf.tanh)
-        #log_std = LOG_STD_MIN + 0.5 * (LOG_STD_MAX - LOG_STD_MIN) * (log_std + 1)
+        #log_std = tf.get_variable(name='log_std', initializer=-0.5*np.ones(act_dim, dtype=np.float32))
+        log_std = tf.layers.dense(net, act_dim, activation=tf.tanh)
+        log_std = LOG_STD_MIN + 0.5 * (LOG_STD_MAX - LOG_STD_MIN) * (log_std + 1)
 
     #take log standard deviation because it can take any values in (-inf, inf) -> easier to train without constraints 
     std = tf.exp(log_std)
@@ -75,7 +75,6 @@ def policy(state, action, hidden_sizes):
     #gives log probability according to the policy of the actions sampled by pi
     with tf.variable_scope('logp_pi'):
         logp_pi = log_likelihood(pi, mean, log_std)
-    #return apply_squashing_func(action, pi, logp, logp_pi)
     return pi, logp, logp_pi
 
 def actor_critic(state, action, action_scale, hidden_sizes=(400,300)):
@@ -83,13 +82,6 @@ def actor_critic(state, action, action_scale, hidden_sizes=(400,300)):
     #policy 
     with tf.variable_scope('pi_nn'):
         pi, logp, logp_pi = policy(state, action, hidden_sizes)
-        print(pi)
-        #with tf.variable_scope('scaling'):
-        #pi *= action_scale
-        #pi, logp, logp_pi = apply_squashing_func(action, pi, logp, logp_pi)
-
-    # make sure actions are in correct range
-    
 
     #state value estimation network
     with tf.variable_scope('val_nn'):

@@ -6,6 +6,7 @@ import pickle
 import joblib
 import os.path as osp
 import logging
+import numpy as np
 logging.basicConfig(filename='env.log', format='%(asctime)s %(message)s', level=logging.INFO)
 
 """
@@ -18,6 +19,10 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
     ep_vals = []
     ep_rews = []
     ep_logp =[]
+    ep_ene = 0
+    ep_clipped = 0
+    ep_dist = 0
+    ep_abs_dist = 0
     obs, rew, done, ep_ret, ep_len = env.get_sensor_data(), 0, False, 0, 0
 
     #cut of episode if total process steps are reached
@@ -48,7 +53,12 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
         ep_logp.append(logp_t)
 
         #agent-environment interaction
-        obs, rew, done = env.step(action)
+        obs, rew, done, r_info = env.step(action)
+
+        ep_ene += r_info["energy"]
+        ep_dist += r_info["distance"]
+        ep_abs_dist += np.abs(r_info["distance"])
+        ep_clipped += r_info["clipped"]
 
         #terminate
         if done:
@@ -58,7 +68,8 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
     last_val = rew if done else sess.run(out[1], feed_dict={inp: obs.reshape(1, -1)})
 
     return {"obs": ep_obs, "a": ep_a,"val":ep_vals, "rew": ep_rews, "logp": ep_logp,
-            "ep_ret": ep_ret,"ep_len": ep_len, "last_val":last_val}
+            "ep_ret": ep_ret,"ep_len": ep_len, "last_val":last_val, "ep_ene":ep_ene,
+            "ep_dist": ep_dist,"ep_abs_dist": ep_abs_dist,"ep_clipped":ep_clipped}
 
 #inits webots api
 sv = Supervisor()

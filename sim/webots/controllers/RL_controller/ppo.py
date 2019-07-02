@@ -152,11 +152,13 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
         #Training
         for i in range(pi_iters):
-            _, kl = sess.run([opt_pi, approx_kl], feed_dict=inputs)
+            _, kl = sess.run([opt_pi, approx_kl, ratio, min_adv], feed_dict=inputs)
             kl = np.mean(kl)
-
+            print("kl",kl)
+            print("ratio", ratio)
+            print("min_adv", min_adv)
             if kl > 1.5 * target_kl:
-                logging.info('Early stopping at step %d due to reaching max kl.'%i)
+                logging.info('Early stopping at step %d due to reaching max kl.'+str(kl))
 
                 break
 
@@ -165,16 +167,14 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
             sess.run(opt_val, feed_dict=inputs)
 
         pi_l_new, val_l_new, kl, cf, ret = sess.run([pi_loss, v_loss, approx_kl, clipfrac, avg_ret], feed_dict=inputs)
-        print(ret)
-        print(pi_l_new)
-        logging.info(
-            "policy loss: " + str(pi_l_old) + "\n" +
-            "value func loss:" + str(val_l_old) + "\n" +
-            "delta policy loss: " + str(pi_l_new-pi_l_old) + "\n" +
-            "delta value func loss: " + str(val_l_new - val_l_old) + "\n" +
-            "kl: " + str(kl) + "\n" +
-            "entropy: " + str(ent) + "\n"
-        )
+        update_info = "policy loss: " + str(pi_l_old) + \
+                      "\n" + "value func loss:" + str(val_l_old) + "\n" +\
+                      "delta policy loss: " + str(pi_l_new-pi_l_old) + "\n" +\
+                      "delta value func loss: " + str(val_l_new - val_l_old) + "\n" +\
+                      "kl: " + str(kl) + "\n" +"entropy: " + str(ent) + "\n"
+
+        print(update_info)
+        logging.info(update_info)
         summ = sess.run(performance_summaries, feed_dict={pi_loss_ph:pi_l_new, v_loss_ph:val_l_new, kl_ph:kl, ent_ph:ent, avg_ret_ph:ret})
         summ_writer.add_summary(summ, epoch)
     start_time = time.time()
@@ -193,9 +193,15 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         epoch_data = run_job(n_proc=n_proc, total_steps=epoch_steps, max_ep_steps= max_ep_len,model_path =saver.fpath,build_files=first)
 
         #save epoch data
-        max_ret, min_ret, avg_return, max_len, min_len, avg_len = buf.store_epoch(epoch_data)
+        max_ret, min_ret, avg_return, max_len, min_len, avg_len, avg_ene, avg_clipped, avg_dist, avg_abs_dist = buf.store_epoch(epoch_data)
 
-        ep_info = "============Epoch " + str(epoch) + " max/min/avg return " + str(max_ret) +" " + str(min_ret) + " " + str(avg_return) + " max/min/avg length " + " " + str(max_len) + " " + str(min_len) +" "+ str(avg_len) + "============"
+        ep_info = "============Epoch " + str(epoch) + " max/min/avg return " + str(max_ret)\
+                  +" " + str(min_ret) + " " + str(avg_return) + " max/min/avg length "\
+                  + " " + str(max_len) + " " + str(min_len) +" "+ str(avg_len) \
+                  + " avg energy/action_clip/distance/abs_distance" \
+                  + " " + str(avg_ene) + " " + str(avg_clipped) +" "+ str(avg_dist)+" " \
+                  + str(avg_abs_dist) \
+                  + "============"
         print(ep_info)
         logging.info(ep_info)
 
