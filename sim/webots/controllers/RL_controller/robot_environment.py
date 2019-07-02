@@ -15,13 +15,14 @@ class Robot_Environment():
             devices = json.load(f)
             force_sensor_names = devices["force_sensors"]
             IMU_names = devices["IMUs"]
-            pos_sensor_names = devices["pos_sensors"]
+            gyro_name = devices["Gyro"]
+            acc_name = devices["Accelerometer"]
             lin_motor_names = devices["lin_motors"]
             rot_motor_names = devices["rot_motors"]
             collision_detector_name = devices["collision_detector"][0]
 
         self.sv.batterySensorEnable(TIMESTEP)
-        self.init_sensors(force_sensor_names, IMU_names, pos_sensor_names)
+        self.init_sensors(force_sensor_names, IMU_names, gyro_name, acc_name)
         self.init_motors(lin_motor_names, rot_motor_names)
         self.init_collision_detection(collision_detector_name)
         self.trans_field = self.sv.getFromDef("robot").getField("translation")
@@ -35,7 +36,7 @@ class Robot_Environment():
         self.collision_detector = s
 
 
-    def init_sensors(self, force_sensor_names, IMU_names, pos_sensor_names):
+    def init_sensors(self, force_sensor_names, IMU_names, gyro_name, acc_name):
         self.force_sensors = []
         for n in force_sensor_names:
             s = self.sv.getTouchSensor(n)
@@ -46,17 +47,34 @@ class Robot_Environment():
             s = self.sv.getInertialUnit(n)
             s.enable(TIMESTEP*2)
             self.IMUs.append(s)
+        
         self.pos_sensors = []
+
+        """
         for n in pos_sensor_names:
             s = self.sv.getPositionSensor(n)
+            print(s)
             s.enable(TIMESTEP * 2)
             self.pos_sensors.append(s)
+        """
+        for n in gyro_name:
+            self.gyro = self.sv.getGyro(n)
+            self.gyro.enable(TIMESTEP*2)
+        
+        for n in acc_name:
+            self.accel = self.sv.getAccelerometer(n)
+            self.accel.enable(TIMESTEP*2)
 
     def init_motors(self, lin_motor_names, rot_motor_names):
         #linear motors
         self.lin_motors = []
-        for n in lin_motor_names:
+        self.pos_sensors = []
+        for idx, n in enumerate(lin_motor_names):
             m = self.sv.getMotor(n)
+            ps = m.getPositionSensor()
+            ps.enable(TIMESTEP*2)
+            #print(ps)
+            self.pos_sensors.append(ps)
             m.setPosition(float(np.inf))
             self.lin_motors.append(m)
 
@@ -64,6 +82,9 @@ class Robot_Environment():
         self.rot_motors = []
         for n in rot_motor_names:
             m = self.sv.getMotor(n)
+            ps = m.getPositionSensor()
+            ps.enable(TIMESTEP*2)
+            self.pos_sensors.append(ps)
             m.setPosition(float(np.inf))
             self.rot_motors.append(m)
 
@@ -86,29 +107,42 @@ class Robot_Environment():
 
 
     def get_sensor_data(self):
-        data = []
+        data = np.zeros(0)
         for s in self.force_sensors:
             vals = s.getValues()
             #in the beginning of the sampling period the sensor data is Nan
             if np.isnan(vals).any():
                 vals = np.zeros(len(vals))
-            data.append(vals)
+            data = np.append(data, vals)
 
         for i in self.IMUs:
             vals = i.getRollPitchYaw()
             # in the beginning of the sampling period the sensor data is Nan
             if np.isnan(vals).any():
                 vals = np.zeros(len(vals))
-            data.append(vals)
+            data = np.append(data, vals)
 
         for i in self.pos_sensors:
             val = i.getValue()
             # in the beginning of the sampling period the sensor data is Nan
             if np.isnan(val):
                 val = 0
-            data.append(val)
+            data = np.append(data, val)
+        
+        vals = self.gyro.getValues()
+        if np.isnan(vals).any():
+            vals = np.zeros(len(vals))
+        data = np.append(data, vals)
 
-        data = np.array(data)
+        vals = self.accel.getValues()
+        if np.isnan(vals).any():
+            vals = np.zeros(len(vals))
+        data = np.append(data, vals)
+
+        print(data)
+        #data = np.array(data)
+        #data.flatten()
+        #print(data)
         return data
 
     """
