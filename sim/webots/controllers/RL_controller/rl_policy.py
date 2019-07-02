@@ -57,9 +57,9 @@ def policy(state, action, hidden_sizes):
 
     #squash standard deviation to avoid extrem values
     with tf.variable_scope('log_std'):
-        #log_std = tf.get_variable(name='log_std', initializer=-0.5*np.ones(act_dim, dtype=np.float32))
-        log_std = tf.layers.dense(net, act_dim, activation=tf.tanh)
-        log_std = LOG_STD_MIN + 0.5 * (LOG_STD_MAX - LOG_STD_MIN) * (log_std + 1)
+        log_std = tf.get_variable(name='log_std', initializer=-0.5*np.ones(act_dim, dtype=np.float32))
+        #log_std = tf.layers.dense(net, act_dim, activation=tf.tanh)
+        #log_std = LOG_STD_MIN + 0.5 * (LOG_STD_MAX - LOG_STD_MIN) * (log_std + 1)
 
     #take log standard deviation because it can take any values in (-inf, inf) -> easier to train without constraints 
     std = tf.exp(log_std)

@@ -26,4 +26,18 @@
 "collision_detector": [
     "collision_detector"
     ]
+"pos_sensors": [
+    "pos_sensor1",
+    "pos_sensor2",
+    "pos_sensor3",
+    "pos_sensor4",
+    "pos_sensor5",
+    "pos_sensor6",
+    "pos_sensor7",
+    "pos_sensor8",
+    "pos_sensor1_lin",
+    "pos_sensor2_lin",
+    "pos_sensor3_lin",
+    "pos_sensor4_lin",
+    ]
 }

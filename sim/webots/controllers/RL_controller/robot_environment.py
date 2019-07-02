@@ -15,12 +15,13 @@ class Robot_Environment():
             devices = json.load(f)
             force_sensor_names = devices["force_sensors"]
             IMU_names = devices["IMUs"]
+            pos_sensor_names = devices["pos_sensors"]
             lin_motor_names = devices["lin_motors"]
             rot_motor_names = devices["rot_motors"]
             collision_detector_name = devices["collision_detector"][0]
 
         self.sv.batterySensorEnable(TIMESTEP)
-        self.init_sensors(force_sensor_names, IMU_names)
+        self.init_sensors(force_sensor_names, IMU_names, pos_sensor_names)
         self.init_motors(lin_motor_names, rot_motor_names)
         self.init_collision_detection(collision_detector_name)
         self.trans_field = self.sv.getFromDef("robot").getField("translation")
@@ -34,7 +35,7 @@ class Robot_Environment():
         self.collision_detector = s
 
 
-    def init_sensors(self, force_sensor_names, IMU_names):
+    def init_sensors(self, force_sensor_names, IMU_names, pos_sensor_names):
         self.force_sensors = []
         for n in force_sensor_names:
             s = self.sv.getTouchSensor(n)
@@ -45,6 +46,11 @@ class Robot_Environment():
             s = self.sv.getInertialUnit(n)
             s.enable(TIMESTEP*2)
             self.IMUs.append(s)
+        self.pos_sensors = []
+        for n in pos_sensor_names:
+            s = self.sv.getPositionSensor(n)
+            s.enable(TIMESTEP * 2)
+            self.pos_sensors.append(s)
 
     def init_motors(self, lin_motor_names, rot_motor_names):
         #linear motors
@@ -94,6 +100,13 @@ class Robot_Environment():
             if np.isnan(vals).any():
                 vals = np.zeros(len(vals))
             data.append(vals)
+
+        for i in self.pos_sensors:
+            val = i.getValue()
+            # in the beginning of the sampling period the sensor data is Nan
+            if np.isnan(val):
+                val = 0
+            data.append(val)
 
         data = np.array(data)
         return data

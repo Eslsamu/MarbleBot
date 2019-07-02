@@ -152,14 +152,16 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
         #Training
         for i in range(pi_iters):
-            _, kl = sess.run([opt_pi, approx_kl, ratio, min_adv], feed_dict=inputs)
+            _, kl, rat, min, l , l_old = sess.run([opt_pi, approx_kl, ratio, min_adv, logp, logp_old_ph], feed_dict=inputs)
+            print(kl)
             kl = np.mean(kl)
             print("kl",kl)
-            print("ratio", ratio)
-            print("min_adv", min_adv)
+            print("ratio", rat)
+            print("min_adv", min)
+            print(l, l_old)
             if kl > 1.5 * target_kl:
                 logging.info('Early stopping at step %d due to reaching max kl.'+str(kl))
-
+                print("kl too big", kl)
                 break
 
         #value function training
@@ -222,4 +224,4 @@ with open(file) as f:
 obs_dim = len(sensor_names) * 3 #TODO better solution (now just multiplies force sensor by 3 for each dim)
 act_dim = len(motor_names)
 action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
+run_ppo(epochs=100, epoch_steps=100, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)

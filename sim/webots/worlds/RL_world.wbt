@@ -42,6 +42,9 @@ DEF robot Robot {
               minPosition -0.5
               maxPosition 0.5
             }
+            PositionSensor {
+              name "pos_sens1"
+            }
           ]
           device2 [
             DEF FR_Motor_Shoulder_Rotation RotationalMotor {
@@ -50,6 +53,9 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -3.14
               maxPosition 3.14
+            }
+            PositionSensor {
+                name "pos_sens2"
             }
           ]
           endPoint Solid {
@@ -93,6 +99,9 @@ DEF robot Robot {
                             maxPosition 0.085
                             maxForce 100
                           }
+                          PositionSensor {
+                                name "pos_sens1_lin"
+                            }
                         ]
                         endPoint Solid {
                           translation 0 0.010033844294535136 0
@@ -186,6 +195,9 @@ DEF robot Robot {
               minPosition -0.5
               maxPosition 0.5
             }
+            PositionSensor {
+                name "pos_sens3"
+            }
           ]
           device2 [
             DEF BR_Motor_Shoulder_Rotation RotationalMotor {
@@ -194,6 +206,9 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -3.14
               maxPosition 3.14
+            }
+            PositionSensor {
+                name "pos_sens4"
             }
           ]
           endPoint Solid {
@@ -237,6 +252,9 @@ DEF robot Robot {
                             maxPosition 0.085
                             maxForce 100
                           }
+                          PositionSensor {
+                                name "pos_sens4_lin"
+                            }
                         ]
                         endPoint Solid {
                           translation 0 0.010033844298977055 0
@@ -333,6 +351,9 @@ DEF robot Robot {
               minPosition -0.5
               maxPosition 0.5
             }
+            PositionSensor {
+                name "pos_sens5"
+            }
           ]
           device2 [
             DEF FL_Motor_Shoulder_Rotation RotationalMotor {
@@ -341,6 +362,9 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -3.14
               maxPosition 3.14
+            }
+            PositionSensor {
+                name "pos_sens6"
             }
           ]
           endPoint Solid {
@@ -384,6 +408,9 @@ DEF robot Robot {
                             maxPosition 0.085
                             maxForce 100
                           }
+                          PositionSensor {
+                                name "pos_sens2_lin"
+                            }
                         ]
                         endPoint Solid {
                           translation 0 0.010033844294014107 0
@@ -509,6 +536,9 @@ DEF robot Robot {
               minPosition -0.5
               maxPosition 0.5
             }
+            PositionSensor {
+                name "pos_sens7"
+            }
           ]
           device2 [
             DEF BL_Motor_Shoulder_Rotation RotationalMotor {
@@ -517,6 +547,9 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -3.14
               maxPosition 3.14
+            }
+            PositionSensor {
+                name "pos_sens7"
             }
           ]
           endPoint Solid {
@@ -560,6 +593,9 @@ DEF robot Robot {
                             maxPosition 0.085
                             maxForce 100
                           }
+                          PositionSensor {
+                                name "pos_sens3_lin"
+                            }
                         ]
                         endPoint Solid {
                           translation 0 0.010033844298455318 0
