@@ -23,6 +23,12 @@
 "IMUs": [
     "IMU_Torso"
     ],
+"Gyro": [
+    "Gyro_Torso"
+],
+"Accelerometer": [
+    "Acc_Torso"
+],
 "collision_detector": [
     "collision_detector"
     ],
