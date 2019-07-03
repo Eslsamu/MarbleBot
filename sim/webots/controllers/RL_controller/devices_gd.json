@@ -1,0 +1,22 @@
+{
+"rot_motors":    [
+    "knee0",
+    "knee1",
+    "knee2",
+    "knee3",
+    "hip0",
+    "hip1",
+    "hip2",
+    "hip3"
+],
+"force_sensors":[
+    "touch0",
+    "touch1",
+    "touch2",
+    "touch3"
+    ],
+
+    "collision_detector": [
+    "collision_detector"
+    ]
+}
