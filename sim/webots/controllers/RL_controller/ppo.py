@@ -165,7 +165,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         for i in range(val_iters):
             sess.run(opt_val, feed_dict=inputs)
 
-        pi_l_new, val_l_new, kl, cf, ret = sess.run([pi_loss, v_loss, approx_kl, clipfrac, avg_ret], feed_dict=inputs)
+        pi_l_new, val_l_new, kl, cf = sess.run([pi_loss, v_loss, approx_kl, clipfrac], feed_dict=inputs)
         update_info = "policy loss: " + str(pi_l_old) + \
                       "\n" + "value func loss:" + str(val_l_old) + "\n" +\
                       "delta policy loss: " + str(pi_l_new-pi_l_old) + "\n" +\
