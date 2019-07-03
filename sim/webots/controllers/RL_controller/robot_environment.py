@@ -13,18 +13,19 @@ class Robot_Environment():
         self.sv = supervisor
         with open(file) as f:
             devices = json.load(f)
-            #force_sensor_names = devices["force_sensors"]
+            force_sensor_names = devices["force_sensors"]
             #IMU_names = devices["IMUs"]
-            gyro_name = devices["Gyro"]
+            #gyro_name = devices["Gyro"]
             #acc_name = devices["Accelerometer"]
             pos_sensor_names = devices["pos_sensors"]
-            lin_motor_names = devices["lin_motors"]
+            #lin_motor_names = devices["lin_motors"]
             rot_motor_names = devices["rot_motors"]
             collision_detector_name = devices["collision_detector"][0]
 
+
         self.sv.batterySensorEnable(TIMESTEP)
-        self.init_sensors(pos_sensor_names, gyro_name)#IMU_names, gyro_name, acc_name)
-        self.init_motors(lin_motor_names, rot_motor_names)
+        self.init_sensors(pos_sensor_names, force_sensor_names)#IMU_names, gyro_name, acc_name)
+        self.init_motors(rot_motor_names)
         self.init_collision_detection(collision_detector_name)
         self.trans_field = self.sv.getFromDef("robot").getField("translation")
 
@@ -40,58 +41,31 @@ class Robot_Environment():
         self.collision_detector = s
 
 
-    def init_sensors(self, pos_sensor_names, gyro_name):#, acc_name,IMU_names ):
-        """
+    def init_sensors(self, pos_sensor_names, force_sensor_names):#, acc_name,IMU_names ):
+
         self.force_sensors = []
         for n in force_sensor_names:
             s = self.sv.getTouchSensor(n)
             s.enable(TIMESTEP*2)
             self.force_sensors.append(s)
 
-        self.IMUs = []
-        for n in IMU_names:
-            s = self.sv.getInertialUnit(n)
-            s.enable(TIMESTEP*2)
-            self.IMUs.append(s)
-        """
+
         self.pos_sensors = []
         for n in pos_sensor_names:
             s = self.sv.getPositionSensor(n)
             s.enable(TIMESTEP * 2)
             self.pos_sensors.append(s)
 
-        for n in gyro_name:
-            self.gyro = self.sv.getGyro(n)
-            self.gyro.enable(TIMESTEP*2)
-        """
-        for n in acc_name:
-            self.accel = self.sv.getAccelerometer(n)
-            self.accel.enable(TIMESTEP*2)
-        """
-    def init_motors(self, lin_motor_names, rot_motor_names):
-        #linear motors
-        self.lin_motors = []
-        self.pos_sensors = []
-        for idx, n in enumerate(lin_motor_names):
-            m = self.sv.getMotor(n)
-            ps = m.getPositionSensor()
-            ps.enable(TIMESTEP*2)
-            #print(ps)
-            self.pos_sensors.append(ps)
-            m.setPosition(float(np.inf))
-            self.lin_motors.append(m)
 
+
+    def init_motors(self, rot_motor_names):
         #rotational motors
         self.rot_motors = []
         for n in rot_motor_names:
             m = self.sv.getMotor(n)
-            ps = m.getPositionSensor()
-            ps.enable(TIMESTEP*2)
-            self.pos_sensors.append(ps)
             m.setPosition(float(np.inf))
             self.rot_motors.append(m)
 
-        self.maxLinVel = self.lin_motors[0].getMaxVelocity()
         self.maxRotVel = self.rot_motors[0].getMaxVelocity()
 
     def distance_travelled(self, pos0, pos1, direction=DIRECTION):
@@ -111,7 +85,7 @@ class Robot_Environment():
 
     def get_sensor_data(self):
         data = []
-        """
+
         for s in self.force_sensors:
             vals = s.getValues()
             #in the beginning of the sampling period the sensor data is Nan
@@ -120,34 +94,13 @@ class Robot_Environment():
             for v in vals:
                 data.append(v)
 
-
-        for i in self.IMUs:
-            vals = i.getRollPitchYaw()
-            # in the beginning of the sampling period the sensor data is Nan
-            if np.isnan(vals).any():
-                vals = np.zeros(len(vals))
-            for v in vals:
-                data.append(v)
-        """
         for i in self.pos_sensors:
             val = i.getValue()
             # in the beginning of the sampling period the sensor data is Nan
             if np.isnan(val):
                 val = 0
             data.append(val)
-        
-        vals = self.gyro.getValues()
-        if np.isnan(vals).any():
-            vals = np.zeros(len(vals))
-        for v in vals:
-            data.append(v)
-        """
-        vals = self.accel.getValues()
-        if np.isnan(vals).any():
-            vals = np.zeros(len(vals))
-        for v in vals:
-            data.append(v)
-        """
+
         return np.array(data)
 
 
@@ -157,14 +110,13 @@ class Robot_Environment():
     this version of controlling returns the sum of the clipped velocity amount
     """
     def actuate_motors(self, vel):
-        n_lin = len(self.lin_motors)
         n_rot = len(self.rot_motors)
 
         total_clipped = 0
 
-        #set linear motor velocity
-        for m in range(n_lin):
-            dif = np.abs(vel[m]) - (self.maxLinVel - self.e)
+        #set rotational motor velocity
+        for m in range(n_rot):
+            dif = np.abs(vel[m]) - (self.maxRotVel - self.e)
             if dif > 0:
                 total_clipped += dif
                 if vel[m] > 0:
@@ -173,23 +125,10 @@ class Robot_Environment():
                     v = float(vel[m] + dif)
             else:
                 v = float(vel[m])
-            self.lin_motors[m].setVelocity(v)
-
-        #set rotational motor velocity
-        for m in range(n_rot):
-            dif = np.abs(vel[m+n_lin]) - (self.maxRotVel - self.e)
-            if dif > 0:
-                total_clipped += dif
-                if vel[m+n_lin] > 0:
-                    v = float(vel[m+n_lin] - dif)
-                else:
-                    v = float(vel[m+n_lin] + dif)
-            else:
-                v = float(vel[m+n_lin])
 
             self.rot_motors[m].setVelocity(v)
 
-        avg_clipped = total_clipped / (n_lin+n_rot)
+        avg_clipped = total_clipped / (n_rot)
         return avg_clipped
 
     def energy_consumed(self, power0, power1):
