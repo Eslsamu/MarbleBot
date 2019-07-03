@@ -228,4 +228,4 @@ with open(file) as f:
 obs_dim = len(sensor_names)
 act_dim = len(motor_names)
 action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=24)
