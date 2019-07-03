@@ -142,7 +142,7 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
     #tensorflow graph inputs
     obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim))
     act_ph = tf.placeholder(dtype = tf.float32, shape=(None,act_dim))
-    adv_ph = tf.placeholder(dtype = tf.float3de2, shape=(None,))
+    adv_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     ret_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     logp_old_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     graph_inputs = [obs_ph, act_ph, adv_ph, ret_ph, logp_old_ph]
@@ -178,18 +178,24 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
         #create input dictionary from trajector and graph inputs
         inputs =  {g:t for g,t in zip(graph_inputs,buf.get())}
 
-        pi_l_old, val_l_old, ent = sess.run([pi_loss, v_loss, approx_ent], feed_dict=inputs)
+        l_p, pi_l_old, val_l_old, ent = sess.run([logp, pi_loss, v_loss, approx_ent], feed_dict=inputs)
+        
+        
+        print("log_p_old: ", l_p[0:10])
+        
 
         #Training
         for i in range(pi_iters):
             _, kl = sess.run([opt_pi, approx_kl], feed_dict=inputs)
             kl = np.mean(kl)
+            print("kl = " +str(kl))
             if kl > 1.5 * target_kl:
                 print('Early stopping at step %d due to reaching max kl.'%i)
                 break
 
         #policy gradient step
-        sess.run(opt_pi, feed_dict=inputs)
+        l_p = sess.run([logp, opt_pi], feed_dict=inputs)
+        print("log_p: ", l_p[0:10])
 
         #value function training
         #t = time.time()
@@ -197,13 +203,13 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
             sess.run(opt_val, feed_dict=inputs)
        # print("value time: ", time.time()-t)
 
-        pi_l_new, val_l_new = sess.run([pi_loss, v_loss], feed_dict=inputs)
-        """
+        pi_l_new, val_l_new, kl = sess.run([pi_loss, v_loss, approx_kl], feed_dict=inputs)
+
         print("policy loss:", pi_l_new)
         print("value func loss:", val_l_new)
         print("delta policy loss: ",pi_l_new-pi_l_old)
         print("delta value func loss: ",val_l_new-val_l_old)
-        """
+        print("kl divergence: ", kl)
 
 
     obs, done, rew, ep_ret, ep_len = env.reset(),False , 0 , 0, 0
