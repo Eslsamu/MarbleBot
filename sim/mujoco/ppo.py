@@ -8,6 +8,7 @@ import time
 import logging
 import pickle
 import os.path as osp
+import os
 import shutil
 import joblib
 logging.basicConfig(filename='ppo.log',format='%(asctime)s %(message)s', level=logging.DEBUG)
@@ -39,7 +40,7 @@ def policy(state, action, hidden_sizes):
     mean = nn(state, list(hidden_sizes)+[act_dim])
 
     #take log standard deviation because it can take any values in (-inf, inf) -> easier to train without constraints 
-    log_std = tf.get_variable(name='log_std', initializer=np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.2,0.2,0.2], dtype=np.float32))
+    log_std = tf.get_variable(name='log_std', initializer=np.array([0, 0, 0, 0, 0, 0, 0, 0, -0.5,-0.5,-0.5,-0.5], dtype=np.float32))
     std = tf.exp(log_std)
 
     #samples actions from policy given a state
@@ -182,7 +183,7 @@ def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
     #tensorflow graph inputs
     obs_ph = tf.placeholder(dtype = tf.float32, shape=(None,obs_dim))
     act_ph = tf.placeholder(dtype = tf.float32, shape=(None,act_dim))
-    adv_ph = tf.placeholder(dtype = tf.float3de2, shape=(None,))
+    adv_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     ret_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     logp_old_ph = tf.placeholder(dtype = tf.float32, shape=(None,))
     graph_inputs = [obs_ph, act_ph, adv_ph, ret_ph, logp_old_ph]
@@ -215,26 +216,32 @@ def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
 
     # initialize model saving
     saver = ModelSaver(sess, inputs={"obs": obs_ph}, outputs={"pi": pi, "val": val, "logp_pi": logp_pi},
-                       export_dir="saved_model")
+                       export_dir="saved_model"+direct)
 
     #gradient update
     def update():
         #create input dictionary from trajector and graph inputs
         inputs =  {g:t for g,t in zip(graph_inputs,buf.get())}
 
-        pi_l_old, val_l_old, ent = sess.run([pi_loss, v_loss, approx_ent], feed_dict=inputs)
+        l_p, pi_l_old, val_l_old, ent = sess.run([logp, pi_loss, v_loss, approx_ent], feed_dict=inputs)
+        
+        
+        #print("log_p_old: ", l_p[0:10])
+        
 
         #Training
         for i in range(pi_iters):
             _, kl = sess.run([opt_pi, approx_kl], feed_dict=inputs)
             kl = np.mean(kl)
+            #print("kl = " +str(kl))
             if kl > 1.5 * target_kl:
                 print('Early stopping at step %d due to reaching max kl.'%i)
 
                 break
 
         #policy gradient step
-        sess.run(opt_pi, feed_dict=inputs)
+        l_p = sess.run([logp, opt_pi], feed_dict=inputs)
+        #print("log_p: ", l_p[0:10])
 
         #value function training
         for i in range(val_iters):
@@ -242,8 +249,8 @@ def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
 
         pi_l_new, val_l_new, kl, cf = sess.run([pi_loss, v_loss, approx_kl, clipfrac], feed_dict=inputs)
 
-        update_info = {"pi_loss":pi_l_new, "val_loss": val_l_new, "d_pi_loss": pi_l_new-pi_l_old
-                       "d_val_loss":val_l_new - val_l_old, "kl": kl, "cf" :cf
+        update_info = {"pi_loss":pi_l_new, "val_loss": val_l_new, "d_pi_loss": pi_l_new-pi_l_old,
+                       "d_val_loss":val_l_new - val_l_old, "kl": kl,"clip_frac": cf,
                        "entropy": ent
                        }
 
@@ -254,7 +261,7 @@ def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
 
 
     #visualize
-    render = True
+    render = False
 
     #experience and training loop
     for epoch in range(epochs):
@@ -265,9 +272,9 @@ def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
 
         first_episode = True
         t = time.time()
-        
-        
-        saver.save_model()
+
+        if epoch%20==0:
+            saver.save_model()
 
         for t in range(epoch_steps):
             obs = obs.reshape(1,-1)
@@ -289,7 +296,7 @@ def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
             terminated = done or (ep_len == max_ep_len)
             if terminated or (t==epoch_steps-1):
                 if not terminated:
-                    print("traj cut off")
+                    print("trajectory cut off")
                 else:
                     epoch_ret.append(ep_ret)
                     epoch_lens.append(ep_len)
@@ -305,49 +312,65 @@ def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
                 last_val = rew if done else sess.run(val, feed_dict={obs_ph: obs.reshape(1,-1)})
                 buf.finish_path(last_val)
 
-                obs, done, rew, ep_ret, ep_len, ep_dist, ep_ene = env.reset(),False, 0, 0 , 0
+                obs, done, rew, ep_ret, ep_len, ep_dist, ep_ene = env.reset(),False, 0, 0 , 0, 0, 0
 
         runtime = t - time.time()
 
-        epoch_info = {"avg_return": np.mean(epoch_ret), "max_return": np.max(ep_ret),
-                      "min return": np.min(epoch_ret), "avg_len": np.mean(ep_len),
+        epoch_info = {"avg_return": np.mean(epoch_ret), "max_return": np.max(epoch_ret),
+                      "min_return": np.min(epoch_ret), "avg_len": np.mean(ep_len),
                       "max_len" : np.max(ep_len), "min_len": np.min(ep_len),
                       "runtime": runtime, "avg_energy" : np.mean(epoch_ene),
                       "avg_dist" : np.mean(epoch_dist)
                       }
 
         #gradient update
+        print("-------------------------------------------epoch: ",epoch," -------------------------------------------")
         update_info = update()
         
         
         epoch_info_str = str(epoch_info)
         update_info_str = str(update_info)
-        print(epoch_info_str)
-        print(update_info_str)
+        
+        
+        print("min return: ", epoch_info.get("min_return"))
+        print("max return: ", epoch_info.get("max_return"))
+        print("avg return: ", epoch_info.get("avg_return"))
+        
+        #print(epoch_info_str)
+        #print(update_info_str)
         logging.info(epoch_info_str)
         logging.info(update_info_str)
         
-        with open("sums/ep_sum"+str(epoch)+".p", "wb") as f:
+        with open(direct+"/ep_sum"+str(epoch)+".p", "wb") as f:
             pickle.dump([epoch_info,update_info],f)
 
 
     #demonstrate learned policy
-    obs = env.reset()
-    ep_ret = 0
-    while True:
-        for i in range(max_ep_len):
-            obs = obs.reshape(1, -1)
-            a = sess.run(pi, feed_dict={obs_ph: obs})
-            env.render()
-            rew, obs, done, = env.step(a[0])
-            ep_ret += rew
-            if done:
-                print("ret: ", ep_ret)
-                ep_ret = 0
-                obs=env.reset()
-                break
+    if direct == "sums4":
+        obs = env.reset()
+        ep_ret = 0
+        while True:
+            for i in range(max_ep_len):
+                obs = obs.reshape(1, -1)
+                a = sess.run(pi, feed_dict={obs_ph: obs})
+                env.render()
+                rew, obs, done, _ = env.step(a[0])
+                ep_ret += rew
+                if done:
+                    print("ret: ", ep_ret)
+                    ep_ret = 0
+                    obs=env.reset()
+                    break
+    
 
-
-ppo()
+for i in range(5):
+    tf.reset_default_graph()
+    tf.set_random_seed(1)
+    direct = "sums"+str(i)
+    print(direct)
+    #if osp.isdir(direct):
+        #shutil.rmtree(direct)
+    os.mkdir(direct)
+    ppo(direct=direct)
 
 
