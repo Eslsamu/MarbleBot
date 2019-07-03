@@ -145,7 +145,7 @@
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_1"/>
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_2"/>
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_3"/>
-i     <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_side_1"/>
+i    <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_side_1"/>
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_side_2"/>
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_side_3"/>
      <motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_side_4"/>

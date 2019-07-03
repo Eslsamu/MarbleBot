@@ -58,7 +58,7 @@ class Buffer():
                 rew = epi["rew"]
                 logp = epi["logp"]
                 ep_len = epi["ep_len"]
-                ep_rets = epi["ep_ret"]
+                ep_ret = epi["ep_ret"]
                 last_val = epi["last_val"]
                 ep_ene = epi["ep_ene"]
                 ep_clipped = epi["ep_clipped"]
@@ -70,7 +70,7 @@ class Buffer():
                 self.finish_path(last_val)
 
                 ep_lens += [ep_len]
-                ep_rets += [ep_rets]
+                ep_rets += [ep_ret]
                 ep_enes += [ep_ene]
                 ep_clippeds += [ep_clipped]
                 ep_dists += [ep_dist]

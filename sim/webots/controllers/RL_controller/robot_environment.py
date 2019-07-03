@@ -30,6 +30,9 @@ class Robot_Environment():
         # small float for handling motor velocity limit
         self.e = 1e-5
 
+        #sensor init step
+        self.sv.step(TIMESTEP)
+
     def init_collision_detection(self, collision_detector_name):
         s = self.sv.getTouchSensor(collision_detector_name)
         s.enable(TIMESTEP*2)
@@ -184,8 +187,8 @@ class Robot_Environment():
 
             self.rot_motors[m].setVelocity(v)
 
-        return total_clipped
-
+        avg_clipped = total_clipped / (n_lin+n_rot)
+        return avg_clipped
 
     def energy_consumed(self, power0, power1):
         return power0-power1
