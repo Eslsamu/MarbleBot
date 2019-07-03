@@ -15,11 +15,11 @@ def apply_squashing_func(action, pi, logp, logp_pi):
         pi = tf.tanh(pi)
 
         #TODO check correctness before using
-        #logp -= tf.reduce_sum(tf.log(clip_but_pass_gradient(1 - action**2, l=0, u=1) + 1e-6), axis=1)
+        logp -= tf.reduce_sum(tf.log(clip_but_pass_gradient(1 - action**2, l=0, u=1) + 1e-6), axis=1)
 
         # To avoid evil machine precision error, strictly clip 1-pi**2 to [0,1] range.
-        #with tf.variable_scope('logp_pi'):
-        logp_pi -= tf.reduce_sum(tf.log(clip_but_pass_gradient(1 - pi**2, l=0, u=1) + 1e-6), axis=1)
+        with tf.variable_scope('logp_pi'):
+            logp_pi -= tf.reduce_sum(tf.log(clip_but_pass_gradient(1 - pi**2, l=0, u=1) + 1e-6), axis=1)
     return pi, logp, logp_pi
 
 #log likelihood of x given normal distribution(mean,log_std)
@@ -81,6 +81,9 @@ def actor_critic(state, action, action_scale, hidden_sizes=(400,300)):
     #policy 
     with tf.variable_scope('pi_nn'):
         pi, logp, logp_pi = policy(state, action, hidden_sizes)
+        if action_scale:
+            apply_squashing_func(action, pi, logp, logp_pi)
+            pi *= action_scale
 
     #state value estimation network
     with tf.variable_scope('val_nn'):

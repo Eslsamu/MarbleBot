@@ -13,6 +13,7 @@ import shutil
 import joblib
 
 SAVE_MODEL_PATH = "saved_model"
+INFO_PATH = "info"
 
 def get_vars(scope=''):
     return [x for x in tf.trainable_variables() if scope in x.name]
@@ -24,7 +25,6 @@ def count_vars(scope=''):
 
 
 class ModelSaver():
-
 
     def __init__(self, sess, inputs, outputs, export_dir):
         self.sess = sess
@@ -54,7 +54,7 @@ class ModelSaver():
 
 def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1e-3,
             gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2,
-            hidden_sizes = (64,64), act_dim=None, obs_dim= None, action_scale=None,n_proc = 2, model_path = SAVE_MODEL_PATH):
+            hidden_sizes = (64,64), act_dim=None, obs_dim= None, action_scale=None,n_proc = 2, model_path = SAVE_MODEL_PATH, info_path=INFO_PATH):
 
     if not(act_dim and obs_dim):
             logging.info("Missing action or obs dimension")
@@ -214,18 +214,69 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #update policy
         update_info = update()
 
-        with open("sum_ep"+str(epoch)+".p", "wb") as f:
+        with open(info_path+str(epoch)+".p", "wb") as f:
             pickle.dump([epoch_info, update_info], f)
 
 
 import json
-file = "devices.json"
+file = "devices_gd.json"
 with open(file) as f:
     devices = json.load(f)
-    sensor_names = devices["pos_sensors"]+devices["Gyro"]*3#devices["force_sensors"]*3 + devices["IMUs"]*3 + devices["Gyro"]*3 + devices["Accelerometer"]*3 + devices["pos_sensors"]
-    motor_names = devices["lin_motors"] + devices["rot_motors"]
+    sensor_names = devices["force_sensors"]*3 + devices["rot_motors"] #+ devices["IMUs"]*3 + devices["Gyro"]*3 + devices["Accelerometer"]*3 + devices["pos_sensors"]
+    motor_names =  devices["rot_motors"]
 
 obs_dim = len(sensor_names)
 act_dim = len(motor_names)
-action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
+
+direct= "sum_"
+os.mkdir(direct)
+action_scale = np.ones(act_dim)
+path = direct + "/"
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=24, info_path=path)
+
+
+tf.reset_default_graph()
+
+
+direct= "sum_squash"
+os.mkdir(direct)
+action_scale = np.ones(act_dim)
+path = direct + "/"
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=24, info_path=path)
+
+tf.reset_default_graph()
+action_scale = None
+
+direct= "sum_small horizon"
+os.mkdir(direct)
+path = direct + "/"
+run_ppo(epochs=400, epoch_steps=1000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=24, info_path=path)
+
+tf.reset_default_graph()
+
+direct= "sum_large_horizon"
+os.mkdir(direct)
+path = direct + "/"
+run_ppo(epochs=50, epoch_steps=8000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=24, info_path=path)
+
+tf.reset_default_graph()
+tf.set_random_seed(1)
+
+direct= "sum1"
+os.mkdir(direct)
+path = direct + "/"
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=24, info_path=path)
+
+tf.reset_default_graph()
+tf.set_random_seed(2)
+
+direct= "sum2"
+os.mkdir(direct)
+path = direct + "/"
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=24, info_path=path)

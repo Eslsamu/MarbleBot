@@ -7,7 +7,7 @@ import os.path as osp
 from os import makedirs
 logging.basicConfig(format='%(asctime)s %(message)s',filename='server.log',level=logging.DEBUG)
 
-INIT_FILE = "../../worlds/RL_world.wbt"
+INIT_FILE = "../../worlds/control_test.wbt"
 INSTANCE_DEST = "../../instances/world"
 COUNTER_DEST = "counter"
 EPOCH_DATA_FOLDER = "epoch_data"

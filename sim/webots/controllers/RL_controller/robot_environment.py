@@ -5,7 +5,7 @@ import json
 TIMESTEP = 32
 DIRECTION = np.pi
 
-DEVICES_FILE = "devices.json"
+DEVICES_FILE = "devices_gd.json"
 
 class Robot_Environment():
 
@@ -14,18 +14,13 @@ class Robot_Environment():
         with open(file) as f:
             devices = json.load(f)
             force_sensor_names = devices["force_sensors"]
-            #IMU_names = devices["IMUs"]
-            #gyro_name = devices["Gyro"]
-            #acc_name = devices["Accelerometer"]
-            pos_sensor_names = devices["pos_sensors"]
-            #lin_motor_names = devices["lin_motors"]
             rot_motor_names = devices["rot_motors"]
             collision_detector_name = devices["collision_detector"][0]
 
-
         self.sv.batterySensorEnable(TIMESTEP)
-        self.init_sensors(pos_sensor_names, force_sensor_names)#IMU_names, gyro_name, acc_name)
         self.init_motors(rot_motor_names)
+        self.init_sensors(force_sensor_names)#IMU_names, gyro_name, acc_name)
+
         self.init_collision_detection(collision_detector_name)
         self.trans_field = self.sv.getFromDef("robot").getField("translation")
 
@@ -41,7 +36,7 @@ class Robot_Environment():
         self.collision_detector = s
 
 
-    def init_sensors(self, pos_sensor_names, force_sensor_names):#, acc_name,IMU_names ):
+    def init_sensors(self, force_sensor_names):#, acc_name,IMU_names ):
 
         self.force_sensors = []
         for n in force_sensor_names:
@@ -49,10 +44,10 @@ class Robot_Environment():
             s.enable(TIMESTEP*2)
             self.force_sensors.append(s)
 
-
+        #must be executed after motors are init
         self.pos_sensors = []
-        for n in pos_sensor_names:
-            s = self.sv.getPositionSensor(n)
+        for n in self.rot_motors:
+            s = n.getPositionSensor()
             s.enable(TIMESTEP * 2)
             self.pos_sensors.append(s)
 
@@ -134,12 +129,13 @@ class Robot_Environment():
     def energy_consumed(self, power0, power1):
         return power0-power1
 
-    def calculate_reward(self, pos0, pos1, power0, power1, clipped,c_rew=1, c_ene = 0.000001, c_clip=0.01):
+    def calculate_reward(self, pos0, pos1, power0, power1, clipped,c_rew=10, c_ene = 0.00001, c_clip=0.01, survival = 0.01):
         d = c_rew * self.distance_travelled(pos0, pos1)
         e = c_ene * self.energy_consumed(power0, power1)
         c = c_clip * clipped
 
-        rew = d - e - c
+        rew = d - e - c + survival
+
         return rew, {"distance":d,"energy":e,"clipped":c}
 
     def check_termination(self):

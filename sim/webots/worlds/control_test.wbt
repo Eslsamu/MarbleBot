@@ -5,7 +5,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation -0.22594036041668053 0.9513701634576234 0.20939380510749483 2.904833845961058
-  position 0.2984210321406533 0.8391663925831923 -1.1035023376700925
+  position 0.2841176225305086 0.7900517945495367 -1.0059433929815818
 }
 RectangleArena {
   floorSize 10 10
@@ -17,7 +17,7 @@ Background {
     0 0 0
   ]
 }
-Robot {
+DEF robot Robot {
   translation 0 0.32000000000000006 0
   children [
     Group {
@@ -46,13 +46,13 @@ Robot {
       device [
         RotationalMotor {
           name "hip0"
-          maxVelocity 100
+          maxVelocity 1
           minPosition -1.5708
           maxPosition 1.5708
           maxTorque 100
         }
         PositionSensor {
-          name "hip0"
+          name "hip0_p"
         }
       ]
       endPoint Solid {
@@ -111,14 +111,14 @@ Robot {
             device [
               RotationalMotor {
                 name "knee0"
-                maxVelocity 100
+                maxVelocity 1
                 minPosition -1.5708
                 maxPosition 1.5708
                 maxTorque 100
               }
               PositionSensor {
-                 name "knee0"
-                }
+                name "knee0_p"
+              }
             ]
             endPoint Solid {
               translation 0 -0.14 0
@@ -166,11 +166,7 @@ Robot {
                           density -1
                           mass 0.01
                         }
-                        type "force"
-                        lookupTable [
-                          0 0 0
-                          100 1000 0
-                        ]
+                        type "force-3d"
                       }
                     ]
                     boundingObject DEF DUMMY_BOX Box {
@@ -213,13 +209,13 @@ Robot {
       device [
         RotationalMotor {
           name "hip2"
-          maxVelocity 100
+          maxVelocity 1
           minPosition -1.5708
           maxPosition 1.5708
           maxTorque 100
         }
         PositionSensor {
-          name "hip2"
+          name "hip2_p"
         }
       ]
       endPoint Solid {
@@ -237,14 +233,14 @@ Robot {
             device [
               RotationalMotor {
                 name "knee2"
-                maxVelocity 100
+                maxVelocity 1
                 minPosition -1.5708
                 maxPosition 1.5708
                 maxTorque 100
               }
               PositionSensor {
-          name "knee2"
-        }
+                name "knee2_p"
+              }
             ]
             endPoint Solid {
               translation 0 -0.14 0
@@ -269,11 +265,7 @@ Robot {
                         name "touch2"
                         boundingObject USE FOOT_SHAPE
                         physics USE FOOT_PHYSICS
-                        type "force"
-                        lookupTable [
-                          0 0 0
-                          100 1000 0
-                        ]
+                        type "force-3d"
                       }
                     ]
                     boundingObject USE DUMMY_BOX
@@ -301,13 +293,13 @@ Robot {
       device [
         RotationalMotor {
           name "spine"
-          maxVelocity 100
+          maxVelocity 1
           minPosition -0.6
           maxPosition 0.6
           maxTorque 100
         }
         PositionSensor {
-          name "spine"
+          name "spine_p"
         }
       ]
       endPoint Solid {
@@ -343,14 +335,14 @@ Robot {
             device [
               RotationalMotor {
                 name "hip1"
-                maxVelocity 100
+                maxVelocity 1
                 minPosition -1.5708
                 maxPosition 1.5708
                 maxTorque 100
               }
               PositionSensor {
-          name "hip1"
-        }
+                name "hip1_p"
+              }
             ]
             endPoint Solid {
               translation -0.16 0 0.12
@@ -367,14 +359,14 @@ Robot {
                   device [
                     RotationalMotor {
                       name "knee1"
-                      maxVelocity 100
+                      maxVelocity 1
                       minPosition -1.5708
                       maxPosition 1.5708
                       maxTorque 100
                     }
                     PositionSensor {
-          name "knee1"
-        }
+                      name "knee1_p"
+                    }
                   ]
                   endPoint Solid {
                     translation 0 -0.14 0
@@ -399,11 +391,7 @@ Robot {
                               name "touch1"
                               boundingObject USE FOOT_SHAPE
                               physics USE FOOT_PHYSICS
-                              type "force"
-                              lookupTable [
-                                0 0 0
-                                100 1000 0
-                              ]
+                             type "force-3d"
                             }
                           ]
                           boundingObject USE DUMMY_BOX
@@ -431,14 +419,14 @@ Robot {
             device [
               RotationalMotor {
                 name "hip3"
-                maxVelocity 100
+                maxVelocity 1
                 minPosition -1.5708
                 maxPosition 1.5708
                 maxTorque 100
               }
               PositionSensor {
-          name "hip3"
-        }
+                name "hip3_p"
+              }
             ]
             endPoint Solid {
               translation -0.16 0 -0.12
@@ -455,14 +443,14 @@ Robot {
                   device [
                     RotationalMotor {
                       name "knee3"
-                      maxVelocity 100
+                      maxVelocity 1
                       minPosition -1.5708
                       maxPosition 1.5708
                       maxTorque 100
                     }
                     PositionSensor {
-          name "knee3"
-        }
+                      name "knee3_p"
+                    }
                   ]
                   endPoint Solid {
                     translation 0 -0.14 0
@@ -487,11 +475,7 @@ Robot {
                               name "touch3"
                               boundingObject USE FOOT_SHAPE
                               physics USE FOOT_PHYSICS
-                              type "force"
-                              lookupTable [
-                                0 0 0
-                                100 1000 0
-                              ]
+                              type "force-3d"
                             }
                           ]
                           boundingObject USE DUMMY_BOX
@@ -528,11 +512,14 @@ Robot {
       }
     }
   ]
-  name "GhostDog"
   boundingObject USE BODY_SHAPE
   physics Physics {
     density 700
   }
-  controller "ghostdog"
+  controller "RL_controller"
+  controllerArgs "None"
   supervisor TRUE
+  battery [
+    5000000, 5000000, 0
+  ]
 }
