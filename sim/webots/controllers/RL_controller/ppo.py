@@ -7,6 +7,7 @@ import tensorflow as tf
 from rl_policy import actor_critic
 from buffer import Buffer
 from wbt_jobs import run_job, visualize_policy
+import pickle
 import os.path as osp
 import shutil
 import joblib
@@ -200,12 +201,15 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #save epoch data
         max_ret, min_ret, avg_return, max_len, min_len, avg_len, avg_ene, avg_clipped, avg_dist, avg_abs_dist = buf.store_epoch(epoch_data)
 
-        ep_info = "============Epoch " + str(epoch) + " max/min/avg return " + str('%3.f'%max_ret)\
-                  +" " + str('%3.f'%min_ret) + " " + str('%3.f'%avg_return) + " max/min/avg length "\
-                  + " " + str('%3.f'%max_len) + " " + str('%3.f'%min_len) +" "+ str('%3.f'%avg_len) \
+        epoch_info = [max_ret, min_ret, avg_return, max_len, min_len, avg_len, avg_ene, avg_clipped, avg_dist, avg_abs_dist]
+        pickle.dump(epoch_info)
+
+        ep_info = "============Epoch " + str(epoch) + " max/min/avg return " + str('%.3f'%max_ret)\
+                  +" " + str('%.3f'%min_ret) + " " + str('%.3f'%avg_return) + " max/min/avg length "\
+                  + " " + str('%.3f'%max_len) + " " + str('%.3f'%min_len) +" "+ str('%.3f'%avg_len) \
                   + " avg energy/action_clip/distance/abs_distance" \
-                  + " " + str('%3.f'%avg_ene) + " " + str('%3.f'%avg_clipped) +" "+ str('%3.f'%avg_dist)+" " \
-                  + str('%3.f'%avg_abs_dist) + " time " + str(runtime) + " "\
+                  + " " + str('%.3f'%avg_ene) + " " + str('%.3f'%avg_clipped) +" "+ str('%.3f'%avg_dist)+" " \
+                  + str('%.3f'%avg_abs_dist) + " time " + str(runtime) + " "\
                   + "============"
         print(ep_info)
         logging.info(ep_info)
@@ -224,4 +228,4 @@ with open(file) as f:
 obs_dim = len(sensor_names)
 act_dim = len(motor_names)
 action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=4)
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
