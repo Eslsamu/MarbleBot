@@ -71,13 +71,9 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
     graph_inputs = [obs_ph, act_ph, adv_ph, ret_ph, logp_old_ph]
     
-    #input_summaries = tf.summary.merge([obs_summary,act_summary,adv_summary,ret_summary,logp_old_summary])
-
 
     #tensorflow graph outputs
     pi, logp, logp_pi, val = actor_critic(obs_ph, act_ph, action_scale, hidden_sizes)
-
-    #output_summaries = tf.summary.merge([pi_summary,logp_summary,logp_pi_summary,val_summary])
 
     #experience buffer
     buf = Buffer(obs_dim, act_dim, epoch_steps, gamma, lam)
@@ -96,35 +92,35 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
     with tf.name_scope('val_loss'):
         v_loss = tf.reduce_mean((ret_ph - val)**2)
 
-    avg_ret = tf.reduce_mean(ret_ph)
-    avg_ret_ph = tf.placeholder(tf.float32, shape=None,name='return_summary')
-    ret_summary = tf.summary.scalar('ret_summ', avg_ret_ph)
+    #avg_ret = tf.reduce_mean(ret_ph)
+    #avg_ret_ph = tf.placeholder(tf.float32, shape=None,name='return_summary')
+    #ret_summary = tf.summary.scalar('ret_summ', avg_ret_ph)
+
     # Info (useful to watch during learning)
     with tf.name_scope('kl_divergence'):
         approx_kl = tf.reduce_mean(logp_old_ph - logp)  # a sample estimate for KL-divergence, easy to compute
         clipped = tf.logical_or(ratio > (1 + clip_ratio), ratio < (1 - clip_ratio))
         clipfrac = tf.reduce_mean(tf.cast(clipped, tf.float32))
 
-        kl_ph = tf.placeholder(tf.float32,shape=None,name='kl_summary')
-        kl_summary = tf.summary.scalar('kl_summ', kl_ph)
+        #kl_ph = tf.placeholder(tf.float32,shape=None,name='kl_summary')
+        #kl_summary = tf.summary.scalar('kl_summ', kl_ph)
     
     
     with tf.name_scope('entropy'):
         approx_ent = tf.reduce_mean(-logp)  # a sample estimate for entropy, also easy to compute
-        
-        ent_ph = tf.placeholder(tf.float32,shape=None,name='entropy')
-        ent_summary = tf.summary.scalar('ent_summ', ent_ph)
+        #ent_ph = tf.placeholder(tf.float32,shape=None,name='entropy')
+        #ent_summary = tf.summary.scalar('ent_summ', ent_ph)
 
 
     with tf.name_scope('loss'):
-        pi_loss_ph = tf.placeholder(tf.float32,shape=None,name='piloss_summary')
-        v_loss_ph = tf.placeholder(tf.float32,shape=None,name='vloss_summary')
+        #pi_loss_ph = tf.placeholder(tf.float32,shape=None,name='piloss_summary')
+        #v_loss_ph = tf.placeholder(tf.float32,shape=None,name='vloss_summary')
         
-        pi_loss_summary = tf.summary.scalar('pi_loss_summ', pi_loss_ph)
-        v_loss_summary = tf.summary.scalar('val_loss_summ', v_loss_ph)
+        #pi_loss_summary = tf.summary.scalar('pi_loss_summ', pi_loss_ph)
+        #v_loss_summary = tf.summary.scalar('val_loss_summ', v_loss_ph)
         
     
-    performance_summaries = tf.summary.merge([pi_loss_summary,v_loss_summary,kl_summary, ent_summary,ret_summary])
+    #performance_summaries = tf.summary.merge([pi_loss_summary,v_loss_summary,kl_summary, ent_summary,ret_summary])
 
     #optimizer
     with tf.name_scope('Train_pi'):
@@ -135,12 +131,12 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
     sess = tf.Session()
 
-    if not os.path.exists('summaries'):
-        os.mkdir('summaries')
-    if not os.path.exists(os.path.join('summaries','first')):
-        os.mkdir(os.path.join('summaries','first'))
+    #if not os.path.exists('summaries'):
+       # os.mkdir('summaries')
+    #if not os.path.exists(os.path.join('summaries','first')):
+        #os.mkdir(os.path.join('summaries','first'))
     
-    summ_writer = tf.summary.FileWriter(os.path.join('summaries','first'), sess.graph)
+    #summ_writer = tf.summary.FileWriter(os.path.join('summaries','first'), sess.graph)
 
     sess.run(tf.global_variables_initializer())
 
@@ -179,8 +175,8 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         print(update_info)
         logging.info(update_info)
 
-        summ = sess.run(performance_summaries, feed_dict={pi_loss_ph:pi_l_new, v_loss_ph:val_l_new, kl_ph:kl, ent_ph:ent, avg_ret_ph:ret})
-        summ_writer.add_summary(summ, epoch)
+        #summ = sess.run(performance_summaries, feed_dict={pi_loss_ph:pi_l_new, v_loss_ph:val_l_new, kl_ph:kl, ent_ph:ent, avg_ret_ph:ret})
+        #summ_writer.add_summary(summ, epoch)
 
     #initialize model saving
     saver = ModelSaver(sess, inputs = {"obs":obs_ph},outputs={"pi": pi, "val": val, "logp_pi": logp_pi}, export_dir= model_path)
@@ -211,9 +207,6 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #update policy
         update()
 
-        #if epoch > 1:
-           # visualize_policy(max_ep_len, "saved_model/simple_save")
-
 
 import json
 file = "devices.json"
@@ -222,7 +215,7 @@ with open(file) as f:
     sensor_names = devices["force_sensors"]*3 + devices["IMUs"]*3 + devices["Gyro"]*3 + devices["Accelerometer"]*3 + devices["pos_sensors"]
     motor_names = devices["lin_motors"] + devices["rot_motors"]
 
-obs_dim = len(sensor_names) #TODO better solution (now just multiplies force sensor by 3 for each dim)
+obs_dim = len(sensor_names)
 act_dim = len(motor_names)
 action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=6)
