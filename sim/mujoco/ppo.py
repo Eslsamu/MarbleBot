@@ -5,7 +5,14 @@ import numpy as np
 import tensorflow as tf
 import scipy.signal
 import time
+import logging
+import pickle
+import os.path as osp
+import shutil
+import joblib
+logging.basicConfig(filename='ppo.log',format='%(asctime)s %(message)s', level=logging.DEBUG)
 
+SAVE_MODEL_PATH = "saved_model"
 env = environment.RoboEnv('model/quad_world_slip.xml')
 
 
@@ -32,7 +39,7 @@ def policy(state, action, hidden_sizes):
     mean = nn(state, list(hidden_sizes)+[act_dim])
 
     #take log standard deviation because it can take any values in (-inf, inf) -> easier to train without constraints 
-    log_std = tf.get_variable(name='log_std', initializer=-0.5*np.ones(act_dim, dtype=np.float32))
+    log_std = tf.get_variable(name='log_std', initializer=np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.2,0.2,0.2], dtype=np.float32))
     std = tf.exp(log_std)
 
     #samples actions from policy given a state
@@ -46,7 +53,6 @@ def policy(state, action, hidden_sizes):
     return pi, logp, logp_pi
 
 def actor_critic(state, action, hidden_sizes=(64,64)):
-
     #policy 
     with tf.variable_scope('pi'):
         pi, logp, logp_pi = policy(state, action, hidden_sizes)
@@ -133,9 +139,42 @@ class VPGBuffer:
         return [self.obs_buf, self.act_buf, self.adv_buf,
                 self.ret_buf, self.logp_buf]
 
+class ModelSaver():
 
 
-def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2):
+    def __init__(self, sess, inputs, outputs, export_dir):
+        self.sess = sess
+        self.inputs = inputs
+        self.outputs = outputs
+        self.export_dir = export_dir
+        self.tf_saver_info = {'inputs': {k:v.name for k,v in inputs.items()},
+                          'outputs': {k:v.name for k,v in outputs.items()}}
+
+    def save_model(self, itr= None):
+        #needs to find a nonexistant directory path
+        self.fpath = 'simple_save' + ('%d' % itr if itr is not None else '')
+        self.fpath = osp.join(self.export_dir, self.fpath)
+
+        if osp.exists(self.fpath):
+        # simple_save refuses to be useful if fpath already exists,
+        # so just delete fpath if it's there.
+            shutil.rmtree(self.fpath)
+
+        tf.saved_model.simple_save(
+            session=self.sess,
+            export_dir=self.fpath,
+            inputs=self.inputs,
+            outputs=self.outputs
+        )
+        joblib.dump(self.tf_saver_info, osp.join(self.fpath, 'model_info.pkl'))
+
+
+def round_dict(dict,pos=2)
+    for dict_value in dict:
+        for k, v in dict_value.items():
+            dict_value[k] = round(v, pos)
+
+def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2):
     act_dim = env.act_shape[0]
     obs_dim = env.state_shape[0]
 
@@ -173,6 +212,10 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
+    # initialize model saving
+    saver = ModelSaver(sess, inputs={"obs": obs_ph}, outputs={"pi": pi, "val": val, "logp_pi": logp_pi},
+                       export_dir="saved_model")
+
     #gradient update
     def update():
         #create input dictionary from trajector and graph inputs
@@ -186,38 +229,43 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
             kl = np.mean(kl)
             if kl > 1.5 * target_kl:
                 print('Early stopping at step %d due to reaching max kl.'%i)
+
                 break
 
         #policy gradient step
         sess.run(opt_pi, feed_dict=inputs)
 
         #value function training
-        #t = time.time()
         for i in range(val_iters):
             sess.run(opt_val, feed_dict=inputs)
-       # print("value time: ", time.time()-t)
 
-        pi_l_new, val_l_new = sess.run([pi_loss, v_loss], feed_dict=inputs)
-        """
-        print("policy loss:", pi_l_new)
-        print("value func loss:", val_l_new)
-        print("delta policy loss: ",pi_l_new-pi_l_old)
-        print("delta value func loss: ",val_l_new-val_l_old)
-        """
+        pi_l_new, val_l_new, kl, cf = sess.run([pi_loss, v_loss, approx_kl, clipfrac], feed_dict=inputs)
+
+        update_info = {"pi_loss":pi_l_new, "val_loss": val_l_new, "d_pi_loss": pi_l_new-pi_l_old
+                       "d_val_loss":val_l_new - val_l_old, "kl": approx_kl,
+                       "entropy": ent,
+                       }
+
+        return update_info
 
 
-    obs, done, rew, ep_ret, ep_len = env.reset(),False , 0 , 0, 0
+    obs, done, rew, ep_ret, ep_len, ep_dist, ep_ene = env.reset(),False , 0 , 0, 0, 0, 0
 
 
     #visualize
-    render = False
+    render = True
 
     #experience and training loop
     for epoch in range(epochs):
-        traj_start = 0
         epoch_ret = []
+        epoch_lens = []
+        epoch_dist = []
+        epoch_ene = []
 
         first_episode = True
+        t = time.time()
+
+        saver.save_model()
 
         for t in range(epoch_steps):
             obs = obs.reshape(1,-1)
@@ -229,9 +277,12 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
             if render and first_episode:
                 env.render()
 
-            rew ,obs , done, = env.step(a[0])
+            rew ,obs , done, r_info = env.step(a[0])
+
             ep_ret += rew
             ep_len += 1
+            ep_dist += r_info["dist"]
+            ep_ene += r_info["energy"]
 
             terminated = done or (ep_len == max_ep_len)
             if terminated or (t==epoch_steps-1):
@@ -239,10 +290,11 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
                     print("traj cut off")
                 else:
                     epoch_ret.append(ep_ret)
+                    epoch_lens.append(ep_len)
+                    epoch_dist.append(ep_dist)
+                    epoch_ene.append(ep_ene)
 
                     if first_episode:
-                        print("done after steps: ", ep_len)
-                        print("episode return: ", ep_ret)
                         # only render first episode
                         first_episode = False
 
@@ -251,31 +303,31 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
                 last_val = rew if done else sess.run(val, feed_dict={obs_ph: obs.reshape(1,-1)})
                 buf.finish_path(last_val)
 
-                obs, done, rew, ep_ret, ep_len = env.reset(),False, 0, 0 , 0
-        print("--------------")
-        print("epoch: ", epoch)
-        print("average return: ", np.mean(epoch_ret) )
-        print("max return: ", max(epoch_ret) )
-        print("min return: ", min(epoch_ret) )
+                obs, done, rew, ep_ret, ep_len, ep_dist, ep_ene = env.reset(),False, 0, 0 , 0
 
+        runtime = t - time.time()
+
+        epoch_info = {"avg_return": np.mean(epoch_ret), "max_return": np.max(ep_ret),
+                      "min return": np.min(epoch_ret), "avg_len": np.mean(ep_len),
+                      "max_len" : np.max(ep_len), "min_len": np.min(ep_len),
+                      "runtime": runtime, "avg_energy" : np.mean(epoch_ene),
+                      "avg_dist" : np.mean(epoch_dist)
+                      }
 
         #gradient update
-        update()
+        update_info = update()
+        
+        
+        epoch_info_str = str(epoch_info)
+        update_info_str = str(update_info)
+        print(epoch_info_str)
+        print(update_info_str)
+        logging.info(epoch_info_str)
+        logging.info(update_info_str)
+        
+        with open("sums/ep_sum"+str(epoch)+".p", "wb") as f:
+            pickle.dump([epoch_info,update_info],f)
 
-
-    # test speed sim result: is similar to spinningup implementation
-    """
-    s = []
-    for i in range(100):
-        t = time.time()
-        obs = env.reset()
-        for _ in range(10):
-            obs = obs.reshape(1, -1)
-            a = sess.run(pi, feed_dict={obs_ph: obs})
-            rew, obs, done, = env.step(a[0])
-        s.append(t - time.time())
-    print("speed: ", np.mean(s))
-    """
 
     #demonstrate learned policy
     obs = env.reset()
@@ -294,6 +346,6 @@ def vpg(epochs=4000,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e
                 break
 
 
-vpg()
+ppo()
 
 

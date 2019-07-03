@@ -21,7 +21,12 @@ class RoboEnv():
                self.sim.data.qvel.flat]).shape
         self.viewer = None
 
-
+    
+    """
+    @param action: 
+    first 8 values are for rotation and abduction motors
+    last 4 values are for contraction
+    """
     def step(self, action):
         sim = self.sim
         sim.data.ctrl[:] = action
@@ -40,7 +45,8 @@ class RoboEnv():
         en_cost = np.sum(np.abs(action))
 
         reward = move_rew + self.s - self.e*en_cost
-
+        r_info = {"dist": move_rew, "energy":en_cost*self.e}
+        
         #check if episode is over
         done = self.check_collision()
         if done:
@@ -48,7 +54,7 @@ class RoboEnv():
 
         state = self._get_state()
 
-        return reward, state, done
+        return reward, state, done, r_info
 
     def _get_state(self):
         state = np.concatenate([
