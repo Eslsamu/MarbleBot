@@ -1,5 +1,6 @@
 #VRML_SIM R2019a utf8
 WorldInfo {
+  basicTimeStep 128
   FPS 30
 }
 Viewpoint {
@@ -21,10 +22,10 @@ DEF robot Robot {
         DEF IMU_Torso InertialUnit {
           name "IMU_Torso"
         }
-        DEF GYRO_Torso Gyro{
+        DEF GYRO_Torso Gyro {
           name "Gyro_Torso"
         }
-        DEF ACC_Torso Accelerometer{
+        DEF ACC_Torso Accelerometer {
           name "Acc_Torso"
         }
         DEF FR_Shoulder_Hip Hinge2Joint {
