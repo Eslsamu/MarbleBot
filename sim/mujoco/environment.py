@@ -3,16 +3,7 @@ import numpy as np
 
 class RoboEnv():
 
-    # energy parame
-    e = 0.0001
-
-    #collision punishment
-    p = 0
-
-    #survival param
-    s = 0
-
-    def __init__(self, xml_path):
+    def __init__(self, xml_path, reward_shape = False, sensors = False, s = 0, p = 0, e = 0.0001):
         self.model = mjc.load_model_from_path(xml_path)
         self.sim = mjc.MjSim(self.model)
         self.act_shape = self.sim.data.ctrl.shape
@@ -20,7 +11,13 @@ class RoboEnv():
                self.sim.data.qpos.flat,
                self.sim.data.qvel.flat]).shape
         self.viewer = None
-
+        
+        #energy param
+        self.s = s
+        #collision punish
+        self.p = p
+        #survival param
+        self.e = e
     
     """
     @param action: 

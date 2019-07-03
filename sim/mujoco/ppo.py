@@ -169,12 +169,13 @@ class ModelSaver():
         joblib.dump(self.tf_saver_info, osp.join(self.fpath, 'model_info.pkl'))
 
 
-def round_dict(dict,pos=2)
+def round_dict(dict,pos=2):
     for dict_value in dict:
         for k, v in dict_value.items():
             dict_value[k] = round(v, pos)
 
-def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97,pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2):
+def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-3,gamma=0.99,lam=0.97, 
+        pi_iters = 80,target_kl = 0.01,val_iters=80, clip_ratio=0.2, variance_output = False, reward_shape = False, sensors= False):
     act_dim = env.act_shape[0]
     obs_dim = env.state_shape[0]
 
@@ -242,8 +243,8 @@ def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
         pi_l_new, val_l_new, kl, cf = sess.run([pi_loss, v_loss, approx_kl, clipfrac], feed_dict=inputs)
 
         update_info = {"pi_loss":pi_l_new, "val_loss": val_l_new, "d_pi_loss": pi_l_new-pi_l_old
-                       "d_val_loss":val_l_new - val_l_old, "kl": approx_kl,
-                       "entropy": ent,
+                       "d_val_loss":val_l_new - val_l_old, "kl": kl, "cf" :cf
+                       "entropy": ent
                        }
 
         return update_info
@@ -264,7 +265,8 @@ def ppo(epochs=500,epoch_steps = 4000 , max_ep_len=1000 ,pi_lr = 3e-4, vf_lr=1e-
 
         first_episode = True
         t = time.time()
-
+        
+        
         saver.save_model()
 
         for t in range(epoch_steps):
