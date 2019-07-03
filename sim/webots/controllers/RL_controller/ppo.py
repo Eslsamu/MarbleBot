@@ -214,8 +214,8 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #update policy
         update_info = update()
 
-        with open("epoch_data/sum_ep"+str(epoch)) as file:
-            pickle.dump([epoch_info, update_info], file)
+        with open("epoch_data/sum_ep"+str(epoch)+".p", "wb") as f:
+            pickle.dump([epoch_info, update_info], f)
 
 
 import json
