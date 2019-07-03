@@ -214,7 +214,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #update policy
         update_info = update()
 
-        with open("epoch_data/sum_ep"+str(epoch)+".p", "wb") as f:
+        with open("sum_ep"+str(epoch)+".p", "wb") as f:
             pickle.dump([epoch_info, update_info], f)
 
 
@@ -228,4 +228,4 @@ with open(file) as f:
 obs_dim = len(sensor_names)
 act_dim = len(motor_names)
 action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=24)
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)

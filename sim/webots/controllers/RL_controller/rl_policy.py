@@ -55,9 +55,8 @@ def policy(state, action, hidden_sizes):
     with tf.name_scope('mean'):
         mean = tf.layers.dense(net, act_dim, activation=None)
 
-    #squash standard deviation to avoid extrem values
     with tf.variable_scope('log_std'):
-        log_std = tf.get_variable(name='log_std', initializer=np.array([0.05,0.05,0.05,0.05,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3], dtype=np.float32))
+        log_std = tf.get_variable(name='log_std', initializer=np.array([-4.5,-4.5,-4.5,-4.5,-2,-2,-2,-2,-2,-2,-2,-2], dtype=np.float32))
         #log_std = tf.layers.dense(net, act_dim, activation=tf.tanh)
         #log_std = LOG_STD_MIN + 0.5 * (LOG_STD_MAX - LOG_STD_MIN) * (log_std + 1)
 
