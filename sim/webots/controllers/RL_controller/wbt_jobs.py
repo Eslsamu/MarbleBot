@@ -2,7 +2,6 @@ import subprocess
 import pickle
 from os import listdir
 import logging
-import numpy as np
 from shutil import rmtree
 import os.path as osp
 from os import makedirs

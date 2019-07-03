@@ -2,7 +2,7 @@ import numpy as np
 import json
 
 
-TIMESTEP = 128
+TIMESTEP = 32
 DIRECTION = np.pi
 
 DEVICES_FILE = "devices.json"
@@ -13,16 +13,17 @@ class Robot_Environment():
         self.sv = supervisor
         with open(file) as f:
             devices = json.load(f)
-            force_sensor_names = devices["force_sensors"]
-            IMU_names = devices["IMUs"]
+            #force_sensor_names = devices["force_sensors"]
+            #IMU_names = devices["IMUs"]
             gyro_name = devices["Gyro"]
-            acc_name = devices["Accelerometer"]
+            #acc_name = devices["Accelerometer"]
+            pos_sensor_names = devices["pos_sensors"]
             lin_motor_names = devices["lin_motors"]
             rot_motor_names = devices["rot_motors"]
             collision_detector_name = devices["collision_detector"][0]
 
         self.sv.batterySensorEnable(TIMESTEP)
-        self.init_sensors(force_sensor_names, IMU_names, gyro_name, acc_name)
+        self.init_sensors(pos_sensor_names, gyro_name)#IMU_names, gyro_name, acc_name)
         self.init_motors(lin_motor_names, rot_motor_names)
         self.init_collision_detection(collision_detector_name)
         self.trans_field = self.sv.getFromDef("robot").getField("translation")
@@ -39,35 +40,34 @@ class Robot_Environment():
         self.collision_detector = s
 
 
-    def init_sensors(self, force_sensor_names, IMU_names, gyro_name, acc_name):
+    def init_sensors(self, pos_sensor_names, gyro_name):#, acc_name,IMU_names ):
+        """
         self.force_sensors = []
         for n in force_sensor_names:
             s = self.sv.getTouchSensor(n)
             s.enable(TIMESTEP*2)
             self.force_sensors.append(s)
+
         self.IMUs = []
         for n in IMU_names:
             s = self.sv.getInertialUnit(n)
             s.enable(TIMESTEP*2)
             self.IMUs.append(s)
-        
-        self.pos_sensors = []
-
         """
+        self.pos_sensors = []
         for n in pos_sensor_names:
             s = self.sv.getPositionSensor(n)
-            print(s)
             s.enable(TIMESTEP * 2)
             self.pos_sensors.append(s)
-        """
+
         for n in gyro_name:
             self.gyro = self.sv.getGyro(n)
             self.gyro.enable(TIMESTEP*2)
-        
+        """
         for n in acc_name:
             self.accel = self.sv.getAccelerometer(n)
             self.accel.enable(TIMESTEP*2)
-
+        """
     def init_motors(self, lin_motor_names, rot_motor_names):
         #linear motors
         self.lin_motors = []
@@ -111,6 +111,7 @@ class Robot_Environment():
 
     def get_sensor_data(self):
         data = []
+        """
         for s in self.force_sensors:
             vals = s.getValues()
             #in the beginning of the sampling period the sensor data is Nan
@@ -127,7 +128,7 @@ class Robot_Environment():
                 vals = np.zeros(len(vals))
             for v in vals:
                 data.append(v)
-
+        """
         for i in self.pos_sensors:
             val = i.getValue()
             # in the beginning of the sampling period the sensor data is Nan
@@ -140,14 +141,15 @@ class Robot_Environment():
             vals = np.zeros(len(vals))
         for v in vals:
             data.append(v)
-
+        """
         vals = self.accel.getValues()
         if np.isnan(vals).any():
             vals = np.zeros(len(vals))
         for v in vals:
             data.append(v)
-
+        """
         return np.array(data)
+
 
     """
     velocity motor control for abduction, rotation and contraction of legs

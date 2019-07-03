@@ -1,11 +1,12 @@
 #VRML_SIM R2019a utf8
 WorldInfo {
-  basicTimeStep 128
+  gravity 0 -6 0
+  ERP 0.3
   FPS 30
 }
 Viewpoint {
-  orientation 0.35883700320980194 0.9089532641721003 0.21222622052492135 5.129494241773969
-  position -1.3984486302154884 1.1316012845893137 -0.9587102928622189
+  orientation 0.9972362012661233 -0.07406250038913932 -0.005891088220422082 6.1239971914430935
+  position 0.33135722805698775 0.4860760713425455 -0.18200231707136805
 }
 Background {
   skyColor [
@@ -47,6 +48,7 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -0.5
               maxPosition 0.5
+              sound ""
             }
             PositionSensor {
               name "pos_sens1"
@@ -59,6 +61,7 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -3.14
               maxPosition 3.14
+              sound ""
             }
             PositionSensor {
               name "pos_sens2"
@@ -104,6 +107,7 @@ DEF robot Robot {
                             minPosition -0.01
                             maxPosition 0.085
                             maxForce 100
+                            sound ""
                           }
                           PositionSensor {
                             name "pos_sens1_lin"
@@ -146,7 +150,7 @@ DEF robot Robot {
                                 boundingObject USE FR_Foot
                                 physics Physics {
                                   density -1
-                                  mass 0.1
+                                  mass 0.5
                                 }
                               }
                             }
@@ -200,6 +204,7 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -0.5
               maxPosition 0.5
+              sound ""
             }
             PositionSensor {
               name "pos_sens3"
@@ -212,6 +217,7 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -3.14
               maxPosition 3.14
+              sound ""
             }
             PositionSensor {
               name "pos_sens4"
@@ -257,6 +263,7 @@ DEF robot Robot {
                             minPosition -0.01
                             maxPosition 0.085
                             maxForce 100
+                            sound ""
                           }
                           PositionSensor {
                             name "pos_sens4_lin"
@@ -299,7 +306,7 @@ DEF robot Robot {
                                 boundingObject USE BR_Foot
                                 physics Physics {
                                   density -1
-                                  mass 0.1
+                                  mass 0.5
                                 }
                               }
                             }
@@ -356,6 +363,7 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -0.5
               maxPosition 0.5
+              sound ""
             }
             PositionSensor {
               name "pos_sens5"
@@ -368,6 +376,7 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -3.14
               maxPosition 3.14
+              sound ""
             }
             PositionSensor {
               name "pos_sens6"
@@ -413,6 +422,7 @@ DEF robot Robot {
                             minPosition -0.01
                             maxPosition 0.085
                             maxForce 100
+                            sound ""
                           }
                           PositionSensor {
                             name "pos_sens2_lin"
@@ -455,7 +465,7 @@ DEF robot Robot {
                                 boundingObject USE FL_Foot
                                 physics Physics {
                                   density -1
-                                  mass 0.1
+                                  mass 0.5
                                 }
                               }
                             }
@@ -538,6 +548,7 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -0.5
               maxPosition 0.5
+              sound ""
             }
             PositionSensor {
               name "pos_sens7"
@@ -550,6 +561,7 @@ DEF robot Robot {
               maxVelocity 3
               minPosition -3.14
               maxPosition 3.14
+              sound ""
             }
             PositionSensor {
               name "pos_sens8"
@@ -595,6 +607,7 @@ DEF robot Robot {
                             minPosition -0.01
                             maxPosition 0.085
                             maxForce 100
+                            sound ""
                           }
                           PositionSensor {
                             name "pos_sens3_lin"
@@ -637,7 +650,7 @@ DEF robot Robot {
                                 boundingObject USE BL_Foot
                                 physics Physics {
                                   density -1
-                                  mass 0.1
+                                  mass 0.5
                                 }
                               }
                             }
