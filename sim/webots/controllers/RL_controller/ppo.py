@@ -112,7 +112,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #ent_summary = tf.summary.scalar('ent_summ', ent_ph)
 
 
-    with tf.name_scope('loss'):
+    #with tf.name_scope('loss'):
         #pi_loss_ph = tf.placeholder(tf.float32,shape=None,name='piloss_summary')
         #v_loss_ph = tf.placeholder(tf.float32,shape=None,name='vloss_summary')
         
