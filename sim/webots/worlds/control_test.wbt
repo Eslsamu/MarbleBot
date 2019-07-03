@@ -50,6 +50,7 @@ DEF robot Robot {
           minPosition -1.5708
           maxPosition 1.5708
           maxTorque 100
+          sound ""
         }
         PositionSensor {
           name "hip0_p"
@@ -115,6 +116,7 @@ DEF robot Robot {
                 minPosition -1.5708
                 maxPosition 1.5708
                 maxTorque 100
+                sound ""
               }
               PositionSensor {
                 name "knee0_p"
@@ -213,6 +215,7 @@ DEF robot Robot {
           minPosition -1.5708
           maxPosition 1.5708
           maxTorque 100
+          sound ""
         }
         PositionSensor {
           name "hip2_p"
@@ -237,6 +240,7 @@ DEF robot Robot {
                 minPosition -1.5708
                 maxPosition 1.5708
                 maxTorque 100
+                sound ""
               }
               PositionSensor {
                 name "knee2_p"
@@ -297,6 +301,7 @@ DEF robot Robot {
           minPosition -0.6
           maxPosition 0.6
           maxTorque 100
+          sound ""
         }
         PositionSensor {
           name "spine_p"
@@ -339,6 +344,7 @@ DEF robot Robot {
                 minPosition -1.5708
                 maxPosition 1.5708
                 maxTorque 100
+                sound ""
               }
               PositionSensor {
                 name "hip1_p"
@@ -363,6 +369,7 @@ DEF robot Robot {
                       minPosition -1.5708
                       maxPosition 1.5708
                       maxTorque 100
+                      sound ""
                     }
                     PositionSensor {
                       name "knee1_p"
@@ -423,6 +430,7 @@ DEF robot Robot {
                 minPosition -1.5708
                 maxPosition 1.5708
                 maxTorque 100
+                sound ""
               }
               PositionSensor {
                 name "hip3_p"
@@ -447,6 +455,7 @@ DEF robot Robot {
                       minPosition -1.5708
                       maxPosition 1.5708
                       maxTorque 100
+                      sound ""
                     }
                     PositionSensor {
                       name "knee3_p"
