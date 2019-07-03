@@ -151,12 +151,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         #Training
         for i in range(pi_iters):
             _, kl, rat, min, l , l_old = sess.run([opt_pi, approx_kl, ratio, min_adv, logp, logp_old_ph], feed_dict=inputs)
-            print(kl)
             kl = np.mean(kl)
-            print("kl",kl)
-            print("ratio", rat[0:4])
-            print("min_adv", min[0:4])
-            print("compare", l[0:4], l_old[0:4])
             if kl > 1.5 * target_kl:
                 logging.info('Early stopping at step %d due to reaching max kl.'%i)
                 print("kl too big", kl, "after", i+1)
@@ -175,6 +170,8 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
         print(update_info)
         logging.info(update_info)
+
+        return [pi_l_new, val_l_new, kl, cf, ent]
 
         #summ = sess.run(performance_summaries, feed_dict={pi_loss_ph:pi_l_new, v_loss_ph:val_l_new, kl_ph:kl, ent_ph:ent, avg_ret_ph:ret})
         #summ_writer.add_summary(summ, epoch)
@@ -202,7 +199,7 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         max_ret, min_ret, avg_return, max_len, min_len, avg_len, avg_ene, avg_clipped, avg_dist, avg_abs_dist = buf.store_epoch(epoch_data)
 
         epoch_info = [max_ret, min_ret, avg_return, max_len, min_len, avg_len, avg_ene, avg_clipped, avg_dist, avg_abs_dist]
-        pickle.dump(epoch_info)
+
 
         ep_info = "============Epoch " + str(epoch) + " max/min/avg return " + str('%.3f'%max_ret)\
                   +" " + str('%.3f'%min_ret) + " " + str('%.3f'%avg_return) + " max/min/avg length "\
@@ -215,7 +212,10 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
         logging.info(ep_info)
 
         #update policy
-        update()
+        update_info = update()
+
+        with open("epoch_data/sum_ep"+str(epoch)) as file:
+            pickle.dump([epoch_info, update_info], file)
 
 
 import json
@@ -228,4 +228,4 @@ with open(file) as f:
 obs_dim = len(sensor_names)
 act_dim = len(motor_names)
 action_scale = np.array([0.2, 0.2, 0.2, 0.2, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=1)
+run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim, action_scale=action_scale, n_proc=24)
