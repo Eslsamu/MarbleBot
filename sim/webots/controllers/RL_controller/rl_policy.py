@@ -81,7 +81,7 @@ def actor_critic(state, action, action_scale, hidden_sizes=(400,300)):
     #policy 
     with tf.variable_scope('pi_nn'):
         pi, logp, logp_pi = policy(state, action, hidden_sizes)
-        if action_scale:
+        if action_scale is not None:
             apply_squashing_func(action, pi, logp, logp_pi)
             pi *= action_scale
 
