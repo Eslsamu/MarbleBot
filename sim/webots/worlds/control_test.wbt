@@ -4,11 +4,14 @@ WorldInfo {
   optimalThreadCount 3
 }
 Viewpoint {
-  orientation -0.22594036041668053 0.9513701634576234 0.20939380510749483 2.904833845961058
-  position 0.2841176225305086 0.7900517945495367 -1.0059433929815818
+  orientation -0.24228412063969135 0.9496521356261347 0.19864346499840577 2.7791606869238676
+  position 4.147198130706046 5.993074961531279 -11.511231397225542
 }
 RectangleArena {
-  floorSize 10 10
+  floorSize 10 5
+}
+DEF checkpoint Obstacle {
+  translation 4.729999999999989 0.025 0
 }
 Background {
   skyColor [
@@ -18,7 +21,7 @@ Background {
   ]
 }
 DEF robot Robot {
-  translation 0 0.32000000000000006 0
+  translation -3.459999999999999 0.32000000000000006 0
   children [
     Group {
     }
@@ -398,7 +401,7 @@ DEF robot Robot {
                               name "touch1"
                               boundingObject USE FOOT_SHAPE
                               physics USE FOOT_PHYSICS
-                             type "force-3d"
+                              type "force-3d"
                             }
                           ]
                           boundingObject USE DUMMY_BOX

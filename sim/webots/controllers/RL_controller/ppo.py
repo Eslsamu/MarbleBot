@@ -233,7 +233,7 @@ os.mkdir(direct)
 action_scale = np.ones(act_dim)
 path = direct + "/"
 run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=24, info_path=path)
+        action_scale=action_scale, n_proc=1, info_path=path)
 
 
 tf.reset_default_graph()
@@ -244,7 +244,7 @@ os.mkdir(direct)
 action_scale = np.ones(act_dim)
 path = direct + "/"
 run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=24, info_path=path)
+        action_scale=action_scale, n_proc=1, info_path=path)
 
 tf.reset_default_graph()
 action_scale = None
@@ -253,7 +253,7 @@ direct= "sum_small horizon"
 os.mkdir(direct)
 path = direct + "/"
 run_ppo(epochs=400, epoch_steps=1000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=24, info_path=path)
+        action_scale=action_scale, n_proc=1, info_path=path)
 
 tf.reset_default_graph()
 
@@ -261,7 +261,7 @@ direct= "sum_large_horizon"
 os.mkdir(direct)
 path = direct + "/"
 run_ppo(epochs=50, epoch_steps=8000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=24, info_path=path)
+        action_scale=action_scale, n_proc=1, info_path=path)
 
 tf.reset_default_graph()
 tf.set_random_seed(1)
@@ -270,7 +270,7 @@ direct= "sum1"
 os.mkdir(direct)
 path = direct + "/"
 run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=24, info_path=path)
+        action_scale=action_scale, n_proc=1, info_path=path)
 
 tf.reset_default_graph()
 tf.set_random_seed(2)
@@ -279,4 +279,4 @@ direct= "sum2"
 os.mkdir(direct)
 path = direct + "/"
 run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=24, info_path=path)
+        action_scale=action_scale, n_proc=1, info_path=path)

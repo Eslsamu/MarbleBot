@@ -3,13 +3,21 @@ import json
 
 
 TIMESTEP = 32
-DIRECTION = np.pi
+
+"""
+North: pi
+West: 3pi/2
+South: 0
+East: pi/2
+"""
+
+DIRECTION = np.pi/2
 
 DEVICES_FILE = "devices_gd.json"
 
 class Robot_Environment():
 
-    def __init__(self, supervisor, file = DEVICES_FILE):
+    def __init__(self, supervisor, file = DEVICES_FILE, checkpoint = True):
         self.sv = supervisor
         with open(file) as f:
             devices = json.load(f)
@@ -29,6 +37,9 @@ class Robot_Environment():
 
         #sensor init step
         self.sv.step(TIMESTEP)
+
+        if checkpoint:
+            self.cp = self.sv.getFromDef("checkpoint").getField("translation")
 
     def init_collision_detection(self, collision_detector_name):
         s = self.sv.getTouchSensor(collision_detector_name)
@@ -63,19 +74,28 @@ class Robot_Environment():
 
         self.maxRotVel = self.rot_motors[0].getMaxVelocity()
 
+
+    """
+    distance measure based on checkpoint or relative to robot itself
+    """
     def distance_travelled(self, pos0, pos1, direction=DIRECTION):
-        # travlled euclidean distance
-        l = np.sqrt((pos1[0] - pos0[0]) ** 2 + (pos1[2] - pos0[2]) ** 2)
+        if self.cp:
+            cpx = self.cp.getSFVec3f()[0]
+            dx = np.abs(cpx - pos0[0]) - np.abs(cpx - pos1[0])
+            return dx
+        else:
+            # travlled euclidean distance
+            l = np.sqrt((pos1[0] - pos0[0]) ** 2 + (pos1[2] - pos0[2]) ** 2)
 
-        # travelled angle (based on unit circle)
-        x = pos1[0] - pos0[0]
-        y = pos1[2] - pos0[2]
-        alpha = np.arctan2(y, x)
+            # travelled angle (based on unit circle)
+            x = pos1[0] - pos0[0]
+            y = pos1[2] - pos0[2]
+            alpha = np.arctan2(y, x)
 
-        # compute distance of normal to position by cos(angle) times distance
-        theta = direction - alpha
-        d = (np.cos(theta) * l)
-        return d
+            # compute distance of normal to position by cos(angle) times distance
+            theta = direction - alpha
+            d = (np.cos(theta) * l)
+            return d
 
 
     def get_sensor_data(self):
@@ -133,9 +153,9 @@ class Robot_Environment():
         d = c_rew * self.distance_travelled(pos0, pos1)
         e = c_ene * self.energy_consumed(power0, power1)
         c = c_clip * clipped
-
         rew = d - e - c + survival
 
+        print(d)
         return rew, {"distance":d,"energy":e,"clipped":c}
 
     def check_termination(self):
