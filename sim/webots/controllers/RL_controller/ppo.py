@@ -227,56 +227,56 @@ with open(file) as f:
 
 obs_dim = len(sensor_names)
 act_dim = len(motor_names)
-
-direct= "sum_"
+"""
+action_scale =None
+direct= "sum_cp"
 os.mkdir(direct)
-action_scale = np.ones(act_dim)
 path = direct + "/"
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=1, info_path=path)
+run_ppo(epochs=100, epoch_steps=6000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=20, info_path=path)
 
 
 tf.reset_default_graph()
+"""
 
-
-direct= "sum_squash"
+direct= "sum_squash_cp"
 os.mkdir(direct)
 action_scale = np.ones(act_dim)
 path = direct + "/"
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=1, info_path=path)
+run_ppo(epochs=100, epoch_steps=6000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=20, info_path=path)
 
 tf.reset_default_graph()
 action_scale = None
 
-direct= "sum_small horizon"
+direct= "sum_small horizon_cp"
 os.mkdir(direct)
 path = direct + "/"
-run_ppo(epochs=400, epoch_steps=1000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=1, info_path=path)
+run_ppo(epochs=300, epoch_steps=2000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=10, info_path=path)
 
 tf.reset_default_graph()
 
-direct= "sum_large_horizon"
+direct= "sum_large_horizon_cp"
 os.mkdir(direct)
 path = direct + "/"
-run_ppo(epochs=50, epoch_steps=8000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=1, info_path=path)
-
-tf.reset_default_graph()
-tf.set_random_seed(1)
-
-direct= "sum1"
-os.mkdir(direct)
-path = direct + "/"
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=1, info_path=path)
+run_ppo(epochs=50, epoch_steps=12000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=24, info_path=path)
 
 tf.reset_default_graph()
 tf.set_random_seed(2)
 
-direct= "sum2"
+direct= "sum1_cp"
 os.mkdir(direct)
 path = direct + "/"
-run_ppo(epochs=100, epoch_steps=4000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=1, info_path=path)
+run_ppo(epochs=100, epoch_steps=6000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=20, info_path=path)
+
+tf.reset_default_graph()
+tf.set_random_seed(3)
+
+direct= "sum2_cp"
+os.mkdir(direct)
+path = direct + "/"
+run_ppo(epochs=100, epoch_steps=6000, act_dim = act_dim, obs_dim = obs_dim,
+        action_scale=action_scale, n_proc=20, info_path=path)

@@ -155,7 +155,6 @@ class Robot_Environment():
         c = c_clip * clipped
         rew = d - e - c + survival
 
-        print(d)
         return rew, {"distance":d,"energy":e,"clipped":c}
 
     def check_termination(self):
