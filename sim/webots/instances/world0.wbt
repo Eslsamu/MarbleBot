@@ -701,7 +701,7 @@ DEF robot Robot {
   physics Physics {
   }
   controller "RL_controller"
-  controllerArgs "None"
+  controllerArgs "500 epoch_data/proc0- saved_model/simple_save counter/c0.p"
   supervisor TRUE
   battery [
     5000000, 5000000, 0

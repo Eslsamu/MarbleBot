@@ -13,7 +13,7 @@ East: pi/2
 
 DIRECTION = np.pi/2
 
-DEVICES_FILE = "devices_gd.json"
+DEVICES_FILE = "devices.json"
 
 class Robot_Environment():
 
@@ -23,10 +23,11 @@ class Robot_Environment():
             devices = json.load(f)
             force_sensor_names = devices["force_sensors"]
             rot_motor_names = devices["rot_motors"]
+            lin_motor_names = devices["lin_motors"]
             collision_detector_name = devices["collision_detector"][0]
 
         self.sv.batterySensorEnable(TIMESTEP)
-        self.init_motors(rot_motor_names)
+        self.init_motors(rot_motor_names,lin_motor_names)
         self.init_sensors(force_sensor_names)#IMU_names, gyro_name, acc_name)
 
         self.init_collision_detection(collision_detector_name)
@@ -69,17 +70,29 @@ class Robot_Environment():
             s = n.getPositionSensor()
             s.enable(TIMESTEP * 2)
             self.pos_sensors.append(s)
+        
+        #must be executed after motors are init
+        for n in self.lin_motors:
+            s = n.getPositionSensor()
+            s.enable(TIMESTEP * 2)
+            self.pos_sensors.append(s)
 
 
     """
     position control
     """
-    def init_motors(self, rot_motor_names):
+    def init_motors(self, rot_motor_names, lin_motor_names):
         #rotational motors
         self.rot_motors = []
         for n in rot_motor_names:
             m = self.sv.getMotor(n)
             self.rot_motors.append(m)
+	
+        self.lin_motors = []
+        for n in lin_motor_names:
+            m = self.sv.getMotor(n)
+            self.lin_motors.append(m)
+
 
 
 
@@ -158,13 +171,16 @@ class Robot_Environment():
         for m in range(n_rot):
             v = float(vel[m])
             self.rot_motors[m].setPosition(v)
-
-
+	
+        n_lin = len(self.lin_motors)
+        for m in range(n_lin):
+            v = float(vel[m+n_rot])
+            self.lin_motors[m].setPosition(v)
 
     def energy_consumed(self, power0, power1):
         return power0-power1
 
-    def calculate_reward(self, pos0, pos1, power0, power1, c_rew=150, c_ene = 0.0003, survival = 0.01):
+    def calculate_reward(self, pos0, pos1, power0, power1, c_rew=150, c_ene = 0.00003, survival = 0.005):
         d = c_rew * self.distance_travelled(pos0, pos1)
         e = c_ene * self.energy_consumed(power0, power1)
 
@@ -173,7 +189,7 @@ class Robot_Environment():
         for f in self.force_sensors:
             if f.getValue():
                 contact += 1
-        if contact > 2:
+        if contact > 3: #two for gd
             s = 0
         else:
             s = survival
@@ -203,13 +219,15 @@ class Robot_Environment():
     def reference(self, action):
 
         m_activations = len(action)
-        assert m_activations % 8 == 0
-
-        a = action.reshape(int(m_activations/8),8)
+        n_motors = len(self.rot_motors) + len(self.lin_motors)
+        assert m_activations % n_motors == 0
+	
+        a = action.reshape(int(m_activations/n_motors),n_motors)
 
         phase = self.t * 2 * np.pi * self.frq
 
         pos = self.ampl * a[0] * np.sin(phase + a[1]) + a[2]
+        pos = np.tanh(pos) * (np.array([0.5,3.14,0.5,3.14,0.5,3.14,0.5,3.14,0.05,0.05,0.05,0.05])-self.e)
         return pos
 
     def step(self,action, confidence=1,dt=TIMESTEP):

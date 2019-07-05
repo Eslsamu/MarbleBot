@@ -219,65 +219,21 @@ def run_ppo(epochs=30,epoch_steps = 4000 , max_ep_len=500 ,pi_lr = 3e-4, vf_lr=1
 
 
 import json
-file = "devices_gd.json"
+file = "devices.json"
 with open(file) as f:
     devices = json.load(f)
-    sensor_names = devices["force_sensors"] + devices["rot_motors"] #+ devices["IMUs"]*3 + devices["Gyro"]*3 + devices["Accelerometer"]*3 + devices["pos_sensors"]
-    motor_names =  devices["rot_motors"]
+    sensor_names = devices["force_sensors"] + devices["rot_motors"] + devices["lin_motors"] #+ devices["IMUs"]*3 + devices["Gyro"]*3 + devices["Accelerometer"]*3 + devices["pos_sensors"]
+    motor_names =  devices["rot_motors"] + devices["lin_motors"]
 
 obs_dim = len(sensor_names)
 dim_conf = 1
 act_dim = len(motor_names) * 3 #+ dim_conf
-"""
-action_scale =None
-direct= "sum_cp"
-os.mkdir(direct)
-path = direct + "/"
-run_ppo(epochs=100, epoch_steps=6000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=20, info_path=path)
 
-
-tf.reset_default_graph()
-"""
-
-direct= "quad_all_legs_cycle3"
+direct= "quad_osc_swarm1"
 os.mkdir(direct)
 action_scale = None
 path = direct + "/"
-run_ppo(epochs=200, epoch_steps=2000, act_dim = act_dim, obs_dim = obs_dim,
+run_ppo(epochs=250, epoch_steps=2000, act_dim = act_dim, obs_dim = obs_dim,
         action_scale=action_scale, n_proc=1, info_path=path)
 
-tf.reset_default_graph()
-action_scale = None
 
-direct= "sum_small horizon_cp"
-os.mkdir(direct)
-path = direct + "/"
-run_ppo(epochs=300, epoch_steps=2000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=10, info_path=path)
-
-tf.reset_default_graph()
-
-direct= "sum_large_horizon_cp"
-os.mkdir(direct)
-path = direct + "/"
-run_ppo(epochs=50, epoch_steps=12000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=24, info_path=path)
-
-tf.reset_default_graph()
-tf.set_random_seed(2)
-
-direct= "sum1_cp"
-os.mkdir(direct)
-path = direct + "/"
-run_ppo(epochs=100, epoch_steps=6000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=20, info_path=path)
-
-tf.reset_default_graph()
-tf.set_random_seed(3)
-
-direct= "sum2_cp"
-os.mkdir(direct)
-path = direct + "/"
-run_ppo(epochs=100, epoch_steps=6000, act_dim = act_dim, obs_dim = obs_dim,
-        action_scale=action_scale, n_proc=20, info_path=path)

@@ -7,7 +7,7 @@ import os.path as osp
 from os import makedirs
 logging.basicConfig(format='%(asctime)s %(message)s',filename='server.log',level=logging.DEBUG)
 
-INIT_FILE = "../../worlds/control_test.wbt"
+INIT_FILE = "../../worlds/RL_world.wbt"
 INSTANCE_DEST = "../../instances/world"
 COUNTER_DEST = "counter"
 EPOCH_DATA_FOLDER = "epoch_data"
@@ -76,7 +76,7 @@ def run_job(n_proc, total_steps, max_ep_steps, model_path, build_files = False, 
                 pickle.dump(steps_per_process+extra_steps, file)
             else:
                 pickle.dump(steps_per_process, file)
-            children.append(subprocess.Popen(["webots --mode=fast --minimize --batch " + worldfiles[p]], shell=True))
+            children.append(subprocess.Popen(["~/webots/webots --mode=fast --minimize --batch " + worldfiles[p]], shell=True))
 
     try:
         #constantly check process to terminate and retrieve simulation data if it did
