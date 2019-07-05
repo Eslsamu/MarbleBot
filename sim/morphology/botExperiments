@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd ../MarbleBot/sim
+
+for ((i=1; i<=5; i++))
+do
+    python3 vpg.py "$i"
+done
