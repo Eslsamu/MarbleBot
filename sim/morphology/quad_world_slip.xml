@@ -1,0 +1,128 @@
+<mujoco model="quad_world">
+	<compiler angle="degree" inertiafromgeom="true" />
+
+	<default>
+		<joint armature="0" damping="1" limited="true" />
+		<geom condim="3" material="matgeom" />
+		<motor ctrllimited="true" ctrlrange="-.4 .4" gear="40" />
+		<tendon damping="300" stiffness="4000" />
+	</default>
+
+	<option cone="pyramidal" iterations="50" jacobian="dense" solver="Newton" timestep="0.005" tolerance="1e-10" />
+
+	<size nconmax="320" njmax="1100" nstack="10000" />
+
+	<visual>
+		<map force="0.1" zfar="30" />
+		<quality shadowsize="2048" />
+		<global offheight="800" offwidth="800" />
+	</visual>
+
+	<asset>
+		<texture builtin="gradient" height="512" rgb1="0.3 0.5 0.7" rgb2="0 0 0" type="skybox" width="512" />
+		<texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127" />
+		<texture builtin="checker" height="512" mark="cross" markrgb=".8 .8 .8" name="texplane" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" type="2d" width="512" />
+		<material name="matgeom" rgba="0.8 0.6 .4 1" texture="texgeom" texuniform="true" />
+		<material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="60 60" texture="texplane"/>
+		<hfield file="heightfieldRough1.png" name="field1" size="8 8 0.05 0.15" />
+
+	</asset>
+
+	<worldbody>
+		<!-- <geom condim="3" hfield="field1" name="highMapGeom1" pos="1 1 0" type="hfield" /> -->
+
+		<light cutoff="100" diffuse="1 1 1" dir="-0 0 -1.3" directional="true" exponent="1" pos="0 0 1.3" specular=".1 .1 .1"/>
+		<geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>
+
+		<body name="torso" pos="0 0 0.4">
+			<freejoint name="root" />
+			<geom name="torso_geom" pos="0 0 0" size="0.4 0.2 0.1" type="box" />
+			<site name="gyroSensorSite" pos="0 0 0" size="0.005" />
+
+			<body name="upper_front_left_leg" pos="0.35 0.26 0.00">
+				<geom fromto="0.0 0.0 0.0 0.0 0.0 -0.125" name="upper_aux_1_geom" rgba=".8 .5 .3 1" size="0.06" type="capsule" />
+				<site name="s1_1" pos="0 0 -0.125" size="0.005" />
+				<body name="lower_front_left_leg" pos="0 0 -0.125">
+					<geom fromto="0.0 0.0 0.0 0.0 0.0 -0.125" name="lower_aux_1_geom" rgba=".2 .8 .7 1" size="0.06" type="capsule" />
+					<site name="s1_2" pos="0 0 0" size="0.005" />
+					<site name="touchSite1" pos="0 0 -0.125" rgba="0.8 0 0.2 1" size="0.064 0.064 0.064" type="sphere" />
+				</body>
+				<joint axis="0 1 0" name="hip_1" pos="0.0 0.0 0.0" range="-90 90" type="hinge" />
+				<joint axis="1 0 0" name="side_1" pos="0.0 0.0 0.0" range="-10 10" type="hinge" />
+			</body>
+			<body name="upper_front_right_leg" pos="0.35 -0.26 0.00">
+				<geom fromto="0.0 0.0 0.0 0.0 0.0 -0.125" name="upper_aux_2_geom" size="0.06" type="capsule" />
+				<site name="s2_1" pos="0 0 -0.125" size="0.005" />
+				<body name="lower_front_right_leg" pos="0 0 -0.125">
+					<geom fromto="0.0 0.0 0.0 0.0 0.0 -0.125" name="lower_aux_2_geom" rgba=".2 .8 .7 1" size="0.06" type="capsule" />
+					<site name="s2_2" pos="0 0 0" size="0.005" />
+					<site name="touchSite2" pos="0 0 -0.125" rgba="0.8 0 0.2 1" size="0.064 0.064 0.064" type="sphere" />
+				</body>
+				<joint axis="0 1 0" name="hip_2" pos="0.0 0.0 0.0" range="-90 90" type="hinge" />
+				<joint axis="1 0 0" name="side_2" pos="0.0 0.0 0.0" range="-10 10" type="hinge" />
+			</body>
+			<body name="upper_left_back_leg" pos="-0.35 0.26 0.00">
+				<geom fromto="0.0 0.0 0.0 0.0 0.0 -0.125" name="upper_aux_3_geom" size="0.06" type="capsule" />
+				<site name="s3_1" pos="0 0 -0.125" size="0.005" />
+				<body name="lower_left_back_leg" pos="0 0 -0.125">
+					<geom fromto="0.0 0.0 0.0 0.0 0.0 -0.125" name="lower_aux_3_geom" rgba=".2 .8 .7 1" size="0.06" type="capsule" />
+					<site name="s3_2" pos="0 0 0" size="0.005" />
+					<site name="touchSite3" pos="0 0 -0.125" rgba="0.8 0 0.2 1" size="0.064 0.064 0.064" type="sphere" />
+				</body>
+				<joint axis="0 1 0" name="hip_3" pos="0.0 0.0 0.0" range="-90 90" type="hinge" />
+				<joint axis="1 0 0" name="side_3" pos="0.0 0.0 0.0" range="-10 10" type="hinge" />
+			</body>
+			<body name="upper_right_back_leg" pos="-0.35 -0.26 0.0">
+				<geom fromto="0.0 0.0 0.0 0.0 0.0 -0.125" name="upper_aux_4_geom" rgba=".8 .5 .3 1" size="0.06" type="capsule" />
+				<site name="s4_1" pos="0 0 -0.125" size="0.005" />
+				<body name="lower_right_back_leg" pos="0 0 -0.125">
+					<geom fromto="0.0 0.0 0.0 0.0 0.0 -0.125" name="lower_aux_4_geom" rgba=".2 .8 .7 1" size="0.06" type="capsule" />
+					<site name="s4_2" pos="0 0 0" size="0.005" />
+					<site name="touchSite4" pos="0 0 -0.125" rgba="0.8 0 0.2 1" size="0.064 0.064 0.064" type="sphere" />
+				</body>
+				<joint axis="0 1 0" name="hip_4" pos="0.0 0.0 0.0" range="-90 90" type="hinge" />
+				<joint axis="1 0 0" name="side_4" pos="0.0 0.0 0.0" range="-10 10" type="hinge" />
+			</body>
+		</body>
+	</worldbody>
+
+	<tendon>
+		<spatial limited="true" name="tend1" range="0 1" rgba=".95 .3 .3 1" width="0.02">
+			<site site="s1_1" />
+			<site site="s1_2" />
+		</spatial>
+		<spatial limited="true" name="tend2" range="0 1" rgba=".95 .3 .3 1" width="0.02">
+			<site site="s2_1" />
+			<site site="s2_2" />
+		</spatial>
+		<spatial limited="true" name="tend3" range="0 1" rgba=".95 .3 .3 1" width="0.02">
+			<site site="s3_1" />
+			<site site="s3_2" />
+		</spatial>
+		<spatial limited="true" name="tend4" range="0 1" rgba=".95 .3 .3 1" width="0.02">
+			<site site="s4_1" />
+			<site site="s4_2" />
+		</spatial>
+	</tendon>
+
+	<actuator>
+		<motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="500" tendon="tend1" />
+		<motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="500" tendon="tend2" />
+		<motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="500" tendon="tend3" />
+		<motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="500" tendon="tend4" />
+		<motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_1" />
+		<motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_2" />
+		<motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_3" />
+		<motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="hip_4" />
+		<motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="side_1" />
+		<motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="side_2" />
+		<motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="side_3" />
+		<motor ctrllimited="true" ctrlrange="-5.0 5.0" joint="side_4" />
+	</actuator>
+
+	<sensor>
+		<gyro site="gyroSensorSite" />
+		<touch site="touchSite1" />
+	</sensor>
+
+</mujoco>
