@@ -108,6 +108,7 @@
         <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="500" tendon="tend2" />
         <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="500" tendon="tend3" />
         <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="500" tendon="tend4" />
+
     </actuator>
 
 </mujoco>

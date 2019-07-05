@@ -114,7 +114,7 @@ class VPGBuffer:
         self.ret_buf[path_slice] = disc_cumsum(rews, self.gamma)[:-1]
 
         self.path_start_idx = self.ptr
-
+        
     def get(self):
         """
         Call this at the end of an epoch to get all of the data from

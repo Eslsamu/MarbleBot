@@ -189,6 +189,3 @@ def change_leg_length(length):
                             site.set('pos', newPos)
     print('Length of legs changed to: ', str(length))
     write(doc_path)
-
-
-remove_DOF('slide')
