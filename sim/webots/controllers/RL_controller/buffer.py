@@ -46,7 +46,7 @@ class Buffer():
 
         #additional info
         ep_enes = []
-        ep_clippeds = []
+        ep_survs = []
         ep_dists = []
         ep_abs_dists = []
 
@@ -61,7 +61,7 @@ class Buffer():
                 ep_ret = epi["ep_ret"]
                 last_val = epi["last_val"]
                 ep_ene = epi["ep_ene"]
-                ep_clipped = epi["ep_clipped"]
+                ep_surv = epi["ep_surv"]
                 ep_dist = epi["ep_dist"]
                 ep_abs_dist = epi["ep_abs_dist"]
 
@@ -72,14 +72,14 @@ class Buffer():
                 ep_lens += [ep_len]
                 ep_rets += [ep_ret]
                 ep_enes += [ep_ene]
-                ep_clippeds += [ep_clipped]
+                ep_survs += [ep_surv]
                 ep_dists += [ep_dist]
                 ep_abs_dists += [ep_abs_dist]
 
 
         return np.max(ep_rets), np.min(ep_rets), np.mean(ep_rets), \
                np.max(ep_lens), np.min(ep_lens), np.mean(ep_lens), \
-               np.mean(ep_enes), np.mean(ep_clippeds), np.mean(ep_dists),\
+               np.mean(ep_enes), np.mean(ep_survs), np.mean(ep_dists),\
                np.mean(ep_abs_dists)
 
     def finish_path(self, last_val=0):

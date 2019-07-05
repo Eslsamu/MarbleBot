@@ -20,7 +20,7 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
     ep_rews = []
     ep_logp =[]
     ep_ene = 0
-    ep_clipped = 0
+    ep_surv = 0
     ep_dist = 0
     ep_abs_dist = 0
     obs, rew, done, ep_ret, ep_len = env.get_sensor_data(), 0, False, 0, 0
@@ -42,6 +42,8 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
         # network inferences
         action, val_t, logp_t = sess.run(out, feed_dict={inp: obs})
         action, val_t, logp_t = action[0], val_t[0], logp_t[0]  # tf output is array
+        control = action#[:-1]
+        #conf = action[-1]
 
         # store timestep data
         ep_ret += rew
@@ -53,12 +55,12 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
         ep_logp.append(logp_t)
 
         #agent-environment interaction
-        obs, rew, done, r_info = env.step(action)
+        obs, rew, done, r_info = env.step(control)#, confidence = conf)
 
         ep_ene += r_info["energy"]
         ep_dist += r_info["distance"]
         ep_abs_dist += np.abs(r_info["distance"])
-        ep_clipped += r_info["clipped"]
+        ep_surv += r_info["survival"]
 
         #terminate
         if done:
@@ -69,7 +71,7 @@ def run_episode(env, sess, inp, out, total_steps, max_ep_steps):
 
     return {"obs": ep_obs, "a": ep_a,"val":ep_vals, "rew": ep_rews, "logp": ep_logp,
             "ep_ret": ep_ret,"ep_len": ep_len, "last_val":last_val, "ep_ene":ep_ene,
-            "ep_dist": ep_dist,"ep_abs_dist": ep_abs_dist,"ep_clipped":ep_clipped}
+            "ep_dist": ep_dist,"ep_abs_dist": ep_abs_dist,"ep_surv":ep_surv}
 
 #inits webots api
 sv = Supervisor()
@@ -111,6 +113,8 @@ if count_file:
 else:
     steps_to_go = max_ep_steps
 
+print(steps_to_go)
+
 #create robot environment
 env = Robot_Environment(supervisor = sv)
 
@@ -140,5 +144,4 @@ else:
 
     ep_len = ep_data.get("len")
     pickle.dump(steps_to_go,open(count_file, "wb"))
-    sv.simulationReset()
-
+    sv.worldReload()

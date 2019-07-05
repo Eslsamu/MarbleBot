@@ -135,7 +135,7 @@ DEF robot Robot {
                                     }
                                     physics Physics {
                                     }
-                                    type "force-3d"
+                                    type "touch"
                                   }
                                   DEF FR_Foot Shape {
                                     appearance PBRAppearance {
@@ -291,7 +291,7 @@ DEF robot Robot {
                                     }
                                     physics Physics {
                                     }
-                                    type "force-3d"
+                                    type "touch"
                                   }
                                   DEF BR_Foot Shape {
                                     appearance PBRAppearance {
@@ -450,7 +450,7 @@ DEF robot Robot {
                                     }
                                     physics Physics {
                                     }
-                                    type "force-3d"
+                                    type "touch"
                                   }
                                   DEF FL_Foot Shape {
                                     appearance PBRAppearance {
@@ -635,7 +635,7 @@ DEF robot Robot {
                                     }
                                     physics Physics {
                                     }
-                                    type "force-3d"
+                                    type "touch"
                                   }
                                   DEF BL_Foot Shape {
                                     appearance PBRAppearance {

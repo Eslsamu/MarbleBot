@@ -1,6 +1,6 @@
 #VRML_SIM R2019a utf8
 WorldInfo {
-  basicTimeStep 64
+  basicTimeStep 32
   optimalThreadCount 3
 }
 Viewpoint {
@@ -9,9 +9,6 @@ Viewpoint {
 }
 RectangleArena {
   floorSize 10 5
-}
-DEF checkpoint Obstacle {
-  translation 4.729999999999989 0.025 0
 }
 Background {
   skyColor [
@@ -41,7 +38,7 @@ DEF robot Robot {
         size 0.6 0.15 0.21
       }
     }
-    DEF HIP0 HingeJoint {
+    DEF HIP0 HingeJoint {m
       jointParameters HingeJointParameters {
         axis 0 0 1
         anchor 0.08 0 0.12
@@ -49,9 +46,9 @@ DEF robot Robot {
       device [
         RotationalMotor {
           name "hip0"
-          maxVelocity 1
-          minPosition -1.5708
-          maxPosition 1.5708
+          maxVelocity 2.5
+
+
           maxTorque 100
           sound ""
         }
@@ -115,9 +112,9 @@ DEF robot Robot {
             device [
               RotationalMotor {
                 name "knee0"
-                maxVelocity 1
-                minPosition -1.5708
-                maxPosition 1.5708
+                maxVelocity 2.5
+
+
                 maxTorque 100
                 sound ""
               }
@@ -171,7 +168,7 @@ DEF robot Robot {
                           density -1
                           mass 0.01
                         }
-                        type "force-3d"
+                        type "touch"
                       }
                     ]
                     boundingObject DEF DUMMY_BOX Box {
@@ -214,9 +211,9 @@ DEF robot Robot {
       device [
         RotationalMotor {
           name "hip2"
-          maxVelocity 1
-          minPosition -1.5708
-          maxPosition 1.5708
+          maxVelocity 2.5
+
+
           maxTorque 100
           sound ""
         }
@@ -239,9 +236,9 @@ DEF robot Robot {
             device [
               RotationalMotor {
                 name "knee2"
-                maxVelocity 1
-                minPosition -1.5708
-                maxPosition 1.5708
+                maxVelocity 2.5
+
+
                 maxTorque 100
                 sound ""
               }
@@ -272,7 +269,7 @@ DEF robot Robot {
                         name "touch2"
                         boundingObject USE FOOT_SHAPE
                         physics USE FOOT_PHYSICS
-                        type "force-3d"
+                        type "touch"
                       }
                     ]
                     boundingObject USE DUMMY_BOX
@@ -300,7 +297,7 @@ DEF robot Robot {
       device [
         RotationalMotor {
           name "spine"
-          maxVelocity 1
+          maxVelocity 2.5
           minPosition -0.6
           maxPosition 0.6
           maxTorque 100
@@ -343,9 +340,9 @@ DEF robot Robot {
             device [
               RotationalMotor {
                 name "hip1"
-                maxVelocity 1
-                minPosition -1.5708
-                maxPosition 1.5708
+                maxVelocity 2.5
+
+
                 maxTorque 100
                 sound ""
               }
@@ -368,9 +365,9 @@ DEF robot Robot {
                   device [
                     RotationalMotor {
                       name "knee1"
-                      maxVelocity 1
-                      minPosition -1.5708
-                      maxPosition 1.5708
+                      maxVelocity 2.5
+
+
                       maxTorque 100
                       sound ""
                     }
@@ -401,7 +398,7 @@ DEF robot Robot {
                               name "touch1"
                               boundingObject USE FOOT_SHAPE
                               physics USE FOOT_PHYSICS
-                              type "force-3d"
+                              type "touch"
                             }
                           ]
                           boundingObject USE DUMMY_BOX
@@ -429,9 +426,9 @@ DEF robot Robot {
             device [
               RotationalMotor {
                 name "hip3"
-                maxVelocity 1
-                minPosition -1.5708
-                maxPosition 1.5708
+                maxVelocity 2.5
+
+
                 maxTorque 100
                 sound ""
               }
@@ -454,9 +451,9 @@ DEF robot Robot {
                   device [
                     RotationalMotor {
                       name "knee3"
-                      maxVelocity 1
-                      minPosition -1.5708
-                      maxPosition 1.5708
+                      maxVelocity 2.5
+
+
                       maxTorque 100
                       sound ""
                     }
@@ -487,7 +484,7 @@ DEF robot Robot {
                               name "touch3"
                               boundingObject USE FOOT_SHAPE
                               physics USE FOOT_PHYSICS
-                              type "force-3d"
+                              type "touch"
                             }
                           ]
                           boundingObject USE DUMMY_BOX
